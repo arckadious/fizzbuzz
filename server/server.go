@@ -157,18 +157,17 @@ func (s *Server) methodNotAllowedHandler(w http.ResponseWriter, r *http.Request)
 // audit requests and response to DB
 func (s *Server) Logger() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		c.Next() //Send Logs only when response
 
-		// before request
-		//TO DO
-		//go s.container.RepoFizz.AuditRequest()
-		logrus.Info("TEST")
-		logrus.Info("TEST2")
-		// c.Next()
-		logrus.Info("TEST3")
-		logrus.Info("TEST4")
-		// after request
-		//TO DO
-		//go s.container.RepoFizz.AuditResponse()
+		// cCp := c.Copy()
+		go func() {
+			defer func() { //prevent any panics error
+				if r := recover(); r != nil {
+					logrus.Error("PANIC Recovered. Error:\n", r)
+				}
+			}()
 
+			//TO DO send data
+		}()
 	}
 }

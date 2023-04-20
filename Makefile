@@ -3,7 +3,7 @@ ifeq ($(OS),Windows_NT)
 else 
 	HTML_TEST_OPEN = open ./testing_results/cover.html
 endif
-.PHONY: all clean build start start-rp start-db start-logs restart stop stop-rp stop-db stop-logs kill rm in install update srv run bash sh tests
+.PHONY: all clean down build start start-rp start-db start-logs restart stop stop-rp stop-db stop-logs kill rm in install update srv run bash sh tests
 
 DOCKER_COMPOSE_BIN = docker-compose
 DOCKER_COMPOSE = $(DOCKER_COMPOSE_BIN)
@@ -22,6 +22,9 @@ all:
 
 clean:
 	@$(DOCKER_COMPOSE) down --volumes --rmi local
+
+down:
+	@$(DOCKER_COMPOSE) down
 
 build:
 	@$(DOCKER_COMPOSE) build --no-cache

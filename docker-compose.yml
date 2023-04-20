@@ -31,10 +31,12 @@ services:
     environment: 
       MYSQL_ROOT_PASSWORD: admin #password root, to access database (it shouldn't be here). 
       MYSQL_DATABASE: DB
+      TZ: Europe/Paris    #timezone for db datetime
     healthcheck:        #cmd to check for the database to be ready in accepting requests.
       test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
-      timeout: 20s
+      timeout: 5s
       retries: 10
+      interval: 20s #check health every 30 minutes
     volumes:
       - mariadb-volume:/var/lib/mysql  #data persistence
       - ./dump.sql:/docker-entrypoint-initdb.d/dump.sql #sql script to execute when init

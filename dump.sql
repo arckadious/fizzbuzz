@@ -3,65 +3,37 @@ USE DB;
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+01:00";
 
-
---
--- Base de données :  `DB`
---
-
--- --------------------------------------------------------
-
---
--- Structure de la table `MESSAGES_REQUEST`
---
-
 CREATE TABLE IF NOT EXISTS `MESSAGES_REQUEST` (
-  `ID` varchar(36) CHARACTER SET utf8mb3 DEFAULT NULL,
-  `MSG` longtext CHARACTER SET utf8mb3 DEFAULT NULL,
-  `HOST` varchar(64) CHARACTER SET utf8mb3 DEFAULT NULL,
-  `TYPE` varchar(64) CHARACTER SET utf8mb3 DEFAULT NULL,
-  `DT_CREATION` datetime DEFAULT NULL,
-  `APP_NAME` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `ID` MEDIUMINT NOT NULL AUTO_INCREMENT,
+  `COR_ID` varchar(36) CHARACTER SET utf8mb3 DEFAULT NULL UNIQUE,
   `SERVICE_ADDRESS` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `CHECKSUM` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+  `HOST` varchar(64) CHARACTER SET utf8mb3 DEFAULT NULL,
+  `MSG` longtext CHARACTER SET utf8mb3 DEFAULT NULL,
+  `DT_CREATION` datetime DEFAULT CURRENT_TIMESTAMP,
+  `APP_NAME` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `CHECKSUM` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  PRIMARY KEY (`ID`)
 
---
--- Index pour les tables exportées
---
+) DEFAULT CHARSET=latin1;
 
---
--- Index pour la table `MESSAGES_REQUEST`
---
 ALTER TABLE `MESSAGES_REQUEST`
-  ADD KEY `IDX_TYPE_DTC_ID` (`TYPE`,`DT_CREATION`,`ID`),
-  ADD KEY `IDX_ID` (`ID`),
   ADD KEY `INDEX_DT_CREATION` (`DT_CREATION`),
   ADD KEY `INDEX_CHECKSUM` (`CHECKSUM`),
-  ADD KEY `MESSAGES_REQUEST_TYPE` (`TYPE`);
+  ADD KEY `IDX_COR_ID` (`COR_ID`);
 
 
-  
---
--- Structure de la table `MESSAGES_RESPONSE`
---
+-- INSERT INTO `MESSAGES_REQUEST` (`MSG`, `HOST`, `APP_NAME`, `SERVICE_ADDRESS`, `CHECKSUM`) VALUES ('testrequest', '123.456.678.910', 'fizzbuzz', 'http://api.localhost/v1/fizzbuzz', 'euzhghzoig');
 
 CREATE TABLE IF NOT EXISTS `MESSAGES_RESPONSE` (
-  `ID` varchar(36) CHARACTER SET utf8mb3 DEFAULT NULL,
-  `MSG` longtext CHARACTER SET utf8mb3 DEFAULT NULL,
+  `ID` MEDIUMINT NOT NULL AUTO_INCREMENT,
+  `COR_ID` varchar(36) CHARACTER SET utf8mb3 DEFAULT NULL UNIQUE,
   `STATUS` varchar(64) CHARACTER SET utf8mb3 DEFAULT NULL,
-  `COR_ID` varchar(36) CHARACTER SET utf8mb3 DEFAULT NULL,
-  `DT_CREATION` datetime DEFAULT NULL
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+  `MSG` longtext CHARACTER SET utf8mb3 DEFAULT NULL,
+  `DT_CREATION` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`ID`)
 
---
--- Index pour les tables exportées
---
+) DEFAULT CHARSET=latin1;
 
---
--- Index pour la table `MESSAGES_RESPONSE`
---
 ALTER TABLE `MESSAGES_RESPONSE`
   ADD KEY `IDX_COR_ID` (`COR_ID`),
-  ADD KEY `IDX_ID` (`ID`),
-  ADD FULLTEXT KEY `MSG` (`MSG`);
-
+  ADD KEY `INDEX_DT_CREATION` (`DT_CREATION`);

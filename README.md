@@ -130,7 +130,7 @@ Check this config file [/parameters/parameters.json](/parameters/parameters.json
 This application use 2 types of logs:
 
  - Error log in standard output and exit the application
- - Applicatives logs in audit database, saved under database field APP_NAME=fizzbuzz
+ - Applicatives logs in audit database (MySQL)
 
 ## :link: Local development
 
@@ -146,7 +146,7 @@ Local tools are available to make yourself comfortable :
 |Dozzle (logs)| http://dozzle.localhost:8080
 |API Go| http://api.localhost:8080
 
-> For more details, see [nginx.conf](nginx.conf)
+> For more details, see [nginx.conf](nginx.conf) and [Docker-compose.yml](docker-compose.yml)
 
 ## :trident: API Endpoints <a id="endpoints"></a>
 
