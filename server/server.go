@@ -1,16 +1,20 @@
 package server
 
 import (
+	"bytes"
 	"context"
+	"io"
 	"net/http"
 	"os"
 	"os/signal"
+	"path"
 	"strconv"
 	"time"
 
 	cst "github.com/arckadious/fizzbuzz/constant"
 	"github.com/arckadious/fizzbuzz/container"
 	"github.com/arckadious/fizzbuzz/response"
+	"github.com/arckadious/fizzbuzz/util"
 
 	"github.com/gin-gonic/gin"
 
@@ -23,6 +27,16 @@ const (
 	IdleTimeout = 60
 	pingURL     = "/ping"
 )
+
+type bodyLogWriter struct {
+	gin.ResponseWriter
+	body *bytes.Buffer
+}
+
+func (w bodyLogWriter) Write(b []byte) (int, error) {
+	w.body.Write(b)
+	return w.ResponseWriter.Write(b)
+}
 
 // Server httpServer struct
 type Server struct {
@@ -157,17 +171,25 @@ func (s *Server) methodNotAllowedHandler(w http.ResponseWriter, r *http.Request)
 // audit requests and response to DB
 func (s *Server) Logger() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.Next() //Send Logs only when response
 
-		// cCp := c.Copy()
-		go func() {
-			defer func() { //prevent any panics error
-				if r := recover(); r != nil {
-					logrus.Error("PANIC Recovered. Error:\n", r)
-				}
-			}()
+		//Generate unique ID to make link between request and its associated response (stored in a different table)
+		corID, _ := util.GenerateUUID()
 
-			//TO DO send data
-		}()
+		body, err := io.ReadAll(c.Request.Body)
+		if err != nil {
+			logrus.Error("Logger coudn't send request data: ", err)
+			return
+		}
+		c.Request.Body = io.NopCloser(bytes.NewReader(body))
+		go s.container.Repo.LogToDB("request", string(body), cst.Scheme+"://"+path.Join(c.Request.Host, c.Request.RequestURI), corID, "", "")
+
+		// Intercept Writer in order to get response body
+		blw := &bodyLogWriter{body: bytes.NewBufferString(""), ResponseWriter: c.Writer}
+		c.Writer = blw
+
+		c.Next()
+
+		go s.container.Repo.LogToDB("response", blw.body.String(), "", corID, "", strconv.Itoa(c.Writer.Status()))
+
 	}
 }

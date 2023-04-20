@@ -11,3 +11,4 @@ fizzbuzz
 /tmp/
 /.history
 .DS_Store
+gin.log

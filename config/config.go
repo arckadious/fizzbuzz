@@ -103,6 +103,12 @@ func New(fileName string, validator validator.Validate) *Config {
 	//Set Gin mode
 	if c.Env != "localhost" {
 		gin.SetMode(gin.ReleaseMode)
+	} else {
+		f, err := os.Create("gin.log")
+		if err != nil {
+			logrus.Error(err)
+		}
+		gin.DefaultWriter = f
 	}
 
 	//validate fields from config
