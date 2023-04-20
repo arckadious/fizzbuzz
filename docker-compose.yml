@@ -1,0 +1,112 @@
+version: "3.8"
+
+volumes :
+  mariadb-volume: {}
+networks: 
+  db-api: 
+    driver: bridge
+  backend:
+    driver: bridge
+
+services:
+
+########
+# logs #
+########
+  dozzle:
+    image: amir20/dozzle:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - backend
+    environment:
+      DOZZLE_NO_ANALYTICS: "true"
+
+###############
+# db fizzbuzz #
+###############
+  mariadb:
+    image : mariadb:latest
+    hostname: mariadb
+    environment: 
+      MYSQL_ROOT_PASSWORD: admin #password root, to access database (it shouldn't be here). 
+      MYSQL_DATABASE: DB
+    healthcheck:        #cmd to check for the database to be ready in accepting requests.
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+    volumes:
+      - mariadb-volume:/var/lib/mysql  #data persistence
+      - ./dump.sql:/docker-entrypoint-initdb.d/dump.sql #sql script to execute when init
+    networks: 
+      - db-api
+
+##########################
+# phpmyadmin db fizzbuzz #
+##########################
+  phpmyadmin:
+    image : phpmyadmin:latest
+    hostname: phpmyadmin
+    environment: 
+      PMA_HOST: mariadb
+    networks: 
+      - db-api
+      - backend
+
+#################
+# reverse proxy #
+#################
+  nginx:
+    image: nginx
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./swaggerui:/www/data/swaggerui
+    ports:
+      - 8080:80
+    networks:
+      - backend
+    restart: always
+
+################
+# api fizzbuzz #
+################
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/fizzbuzz-api
+      - ./parameters/parameters.json:/go/config/config.json #choose specific api config
+    hostname: api
+    depends_on: 
+      mariadb:
+        condition: service_healthy #Wait for the database to be ready in accepting requests.
+    networks: 
+      - db-api
+      - backend
+    environment:
+      - CGO_ENABLED=0
+      - GOOS=linux
+      - GOARCH=amd64
+
+  # -----------------------------------------------------------------------------------------------------------------------------------------------------
+  #  Pour tester l'image de déploiement de l'api utilisée dans le gitlabci. - penser à faire un docker-compose build pour rebuild avec le Dockerfile.prod
+  # -----------------------------------------------------------------------------------------------------------------------------------------------------
+  # api:
+  #     build:
+  #       context: .
+  #       dockerfile: Dockerfile.prod
+  #     hostname: api
+  #     volumes :
+  #       - ./parameters/parameters.json:/go/config/config.json #choose specific api config
+  #     depends_on: 
+  #       mariadb:
+  #         condition: service_healthy #Wait for the database to be ready in accepting requests.
+  #     networks: 
+  #       - db-api
+  #       - backend
+  #     environment:
+  #       - CGO_ENABLED=0
+  #       - GOOS=linux
+  #       - GOARCH=amd64
+

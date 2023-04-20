@@ -1,0 +1,828 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>fizz: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">fizzbuzz/action/fizz/fizz.go (0.0%)</option>
+				
+				<option value="file1">fizzbuzz/config/config.go (76.5%)</option>
+				
+				<option value="file2">fizzbuzz/container/container.go (0.0%)</option>
+				
+				<option value="file3">fizzbuzz/database/database.go (0.0%)</option>
+				
+				<option value="file4">fizzbuzz/manager/fizz.go (0.0%)</option>
+				
+				<option value="file5">fizzbuzz/manager/manager.go (0.0%)</option>
+				
+				<option value="file6">fizzbuzz/repository/fizz.go (0.0%)</option>
+				
+				<option value="file7">fizzbuzz/repository/repository.go (0.0%)</option>
+				
+				<option value="file8">fizzbuzz/response/apiresponse.go (0.0%)</option>
+				
+				<option value="file9">fizzbuzz/server/server.go (0.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package fizz
+
+import (
+        "encoding/json"
+        "fizzbuzz/manager"
+        "fizzbuzz/model"
+        "fizzbuzz/response"
+        "net/http"
+)
+
+type FizzAction struct {
+        mng *manager.Fizz
+}
+
+func NewFizzAction(mng *manager.Fizz) *FizzAction <span class="cov0" title="0">{
+        return &amp;FizzAction{mng}
+}</span>
+
+func (ac *FizzAction) HandleFizz(w http.ResponseWriter, r *http.Request) <span class="cov0" title="0">{
+
+        res := ac.mng.GetApiResponse() //generic response, unchanged, send 200 OK with json body response
+        var input model.Input
+
+        //extract input
+        defer r.Body.Close()
+        err := json.NewDecoder(r.Body).Decode(&amp;input)
+        if err != nil </span><span class="cov0" title="0">{
+                res.SetBadRequestResponse([]response.ApiError{{Code: response.ErrorInvalidData, Message: "Data JSON input bad format."}}).WriteJsonResponse(w)
+                return
+        }</span>
+
+        //Validate input
+        <span class="cov0" title="0">if err := ac.mng.GetValidator().Struct(input); err != nil </span><span class="cov0" title="0">{
+                res.SetBadRequestResponse([]response.ApiError{{Code: response.ErrorInvalidField, Message: err.Error()}}).WriteJsonResponse(w)
+                return
+        }</span>
+
+        <span class="cov0" title="0">ac.mng.HandleFizz(w, input)</span>
+
+}
+
+func (ac *FizzAction) HandleStatistics(w http.ResponseWriter, r *http.Request) <span class="cov0" title="0">{
+        ac.mng.HandleStatistics(w)
+}</span>
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package config
+
+import (
+        "encoding/json"
+        "os"
+        "strings"
+        "time"
+
+        "github.com/gin-gonic/gin"
+        "github.com/go-playground/validator/v10"
+        "github.com/sirupsen/logrus"
+)
+
+// Config contains project general configuration
+type Config struct {
+        Env      string `validate:"required,oneof='localhost' 'dev' 'rct' 'prod' 'develop' 'recette' 'production'"`
+        Level    string `validate:"required,oneof='trace' 'debug' 'info' 'warning' 'warn' 'error' 'fatal' 'panic'"`
+        rootPath string `validate:"required"`
+        Port     int    `validate:"gte=1,lte=65535"`
+        Database struct {
+                Adapter         string        `json:"adapter" validate:"required"`
+                Host            string        `json:"host" validate:"required"`
+                Username        string        `json:"username" validate:"required"`
+                Password        string        `json:"password" validate:"required"`
+                Port            string        `json:"port" validate:"gte=1,lte=65535"`
+                Name            string        `json:"name" validate:"required"`
+                Charset         string        `json:"charset" validate:"required"`
+                MaxOpenConns    int           `json:"maxOpenConns" validate:"gte=1"`
+                MaxIdleConns    int           `json:"maxIdleConns" validate:"gte=1"`
+                MaxConnLifeTime time.Duration `json:"maxConnLifeTime" validate:"gte=1"`
+        } `json:"database"`
+}
+
+// lower case on string fields level and Env, to avoid case sensitive
+func (c *Config) UnmarshalJSON(data []byte) error <span class="cov8" title="1">{
+
+        type TmpConfig Config //avoid infinite loop stack exceed.
+
+        var tmpConf TmpConfig //init struct
+
+        err := json.Unmarshal(data, &amp;tmpConf)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">*c = Config(tmpConf)
+
+        (*c).Env = strings.ToLower((*c).Env)
+        (*c).Level = strings.ToLower((*c).Level)
+
+        return nil</span>
+}
+
+func (c *Config) GetRootPath() string <span class="cov0" title="0">{
+
+        return c.rootPath
+}</span>
+
+func (c *Config) InitRootPath(val string) <span class="cov8" title="1">{
+        if c.rootPath != "" </span><span class="cov0" title="0">{
+                c.rootPath = val
+        }</span>
+}
+
+// New create Config
+func New(fileName string, validator validator.Validate) *Config <span class="cov8" title="1">{
+
+        var c Config
+        configFile, err := os.Open(fileName)
+        if err != nil </span><span class="cov0" title="0">{
+                logrus.Fatal(err)
+        }</span>
+        <span class="cov8" title="1">defer configFile.Close()
+
+        err = json.NewDecoder(configFile).Decode(&amp;c)
+        if err != nil </span><span class="cov0" title="0">{
+                logrus.Fatal(err)
+        }</span>
+
+        //Set Rootpath
+        <span class="cov8" title="1">rootPath, err := os.Getwd()
+        if err != nil </span><span class="cov0" title="0">{
+                logrus.Fatal(err)
+        }</span>
+        <span class="cov8" title="1">c.InitRootPath(rootPath)
+
+        //Set log error Level
+        level, err := logrus.ParseLevel(c.Level)
+        if err == nil </span><span class="cov8" title="1">{
+                logrus.SetLevel(level)
+        }</span> else<span class="cov0" title="0"> {
+                logrus.SetLevel(logrus.DebugLevel)
+        }</span>
+
+        //define logrus text formatter
+        <span class="cov8" title="1">logrus.SetFormatter(&amp;logrus.TextFormatter{
+                ForceColors:     true,
+                FullTimestamp:   true,
+                TimestampFormat: "2006-01-02 15:04:05",
+                //PadLevelText:    true,
+        })
+
+        //Set Gin mode
+        if c.Env != "localhost" </span><span class="cov8" title="1">{
+                gin.SetMode(gin.ReleaseMode)
+        }</span>
+
+        //validate fields from config
+        <span class="cov8" title="1">if err := validator.Struct(c); err != nil </span><span class="cov0" title="0">{
+                logrus.Fatal(err)
+        }</span>
+
+        <span class="cov8" title="1">return &amp;c</span>
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package container
+
+import (
+        fizzaction "fizzbuzz/action/fizz"
+        "fizzbuzz/database"
+        "fizzbuzz/repository"
+
+        "fizzbuzz/config"
+        "fizzbuzz/manager"
+        "fizzbuzz/response"
+        "net/http"
+
+        "github.com/go-playground/validator/v10"
+)
+
+type Container struct {
+        Conf      *config.Config
+        Validator *validator.Validate
+
+        FizzAction *fizzaction.FizzAction
+
+        Repo     *repository.Repository
+        RepoFizz *repository.RepositoryFizz
+}
+
+// Container constructor
+func New(conf *config.Config, validator *validator.Validate) *Container <span class="cov0" title="0">{
+
+        container := Container{
+                Conf:      conf,
+                Validator: validator,
+        }
+        container.setRepositories()
+        container.setActions()
+
+        return &amp;container
+}</span>
+
+// Set application actions
+func (c *Container) setActions() *Container <span class="cov0" title="0">{
+
+        // Default API Response is always set to HTTP status 200
+        resp := response.ApiResponse{
+                StatusCode: http.StatusOK,
+                Status:     response.StatusSuccess,
+                Messages:   make([]response.ApiError, 0),
+        }
+
+        // Starting init managers and actions
+        mng := manager.New(c.Conf, resp, c.Validator, c.Repo) //init manager object by calling constructor
+
+        mngrFizz := manager.NewFizz(mng, c.RepoFizz) //init fizz object, child of manager class
+
+        c.FizzAction = fizzaction.NewFizzAction(mngrFizz)
+
+        return c
+}</span>
+
+func (c *Container) setRepositories() <span class="cov0" title="0">{
+        c.Repo = repository.NewRepository(database.New(c.Conf))
+        c.RepoFizz = repository.NewFizzRepository(c.Repo)
+}</span>
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package database
+
+import (
+        "database/sql"
+        "fizzbuzz/config"
+        "fmt"
+        "time"
+
+        "github.com/sirupsen/logrus"
+)
+
+func New(cf *config.Config) *sql.DB <span class="cov0" title="0">{
+        dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s",
+                cf.Database.Username,
+                cf.Database.Password,
+                cf.Database.Host,
+                cf.Database.Port,
+                cf.Database.Name)
+
+        db, err := sql.Open("mysql", dsn)
+        if err != nil </span><span class="cov0" title="0">{
+                logrus.Fatal(err)
+        }</span>
+
+        <span class="cov0" title="0">err = db.Ping()
+        if err != nil </span><span class="cov0" title="0">{
+                logrus.Fatal(err)
+        }</span>
+
+        <span class="cov0" title="0">db.SetMaxOpenConns(cf.Database.MaxOpenConns)
+        db.SetMaxIdleConns(cf.Database.MaxIdleConns)
+        db.SetConnMaxLifetime(cf.Database.MaxConnLifeTime * time.Second)
+
+        return db</span>
+}
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package manager
+
+import (
+        "fizzbuzz/model"
+        "fizzbuzz/repository"
+        "net/http"
+        "strconv"
+        "strings"
+)
+
+// Manager fizz
+type Fizz struct {
+        *Manager //Fizz class has attributes and methods from manager parent class
+        repo     *repository.RepositoryFizz
+}
+
+// NewFizz Constructor
+func NewFizz(m *Manager, repo *repository.RepositoryFizz) *Fizz <span class="cov0" title="0">{
+        return &amp;Fizz{
+                Manager: m,
+                repo:    repo,
+        }
+}</span>
+
+func (m *Fizz) HandleFizz(w http.ResponseWriter, input model.Input) <span class="cov0" title="0">{
+
+        res := m.GetApiResponse()
+
+        var tab []string
+        for i := 1; i &lt;= input.Limit; i++ </span><span class="cov0" title="0">{
+                var elem string
+                for _, multiple := range input.Multiples </span><span class="cov0" title="0">{
+                        if i%multiple.IntX == 0 </span><span class="cov0" title="0">{
+                                elem += multiple.StrX
+                        }</span>
+                }
+
+                //no multiple -&gt; add number
+                <span class="cov0" title="0">if elem == "" </span><span class="cov0" title="0">{
+                        tab = append(tab, strconv.Itoa(i))
+                }</span> else<span class="cov0" title="0"> {
+                        tab = append(tab, elem)
+                }</span>
+
+        }
+
+        <span class="cov0" title="0">output := strings.Join(tab, ",")
+
+        res.SetData(output).WriteJsonResponse(w)</span>
+}
+
+func (m *Fizz) HandleStatistics(w http.ResponseWriter) <span class="cov0" title="0">{
+
+        res := m.GetApiResponse()
+
+        //TO DO
+        res.SetData("NOT IMPLEMENTED YET").WriteJsonResponse(w)
+}</span>
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package manager
+
+import (
+        "fizzbuzz/config"
+        "fizzbuzz/repository"
+        "fizzbuzz/response"
+
+        "github.com/go-playground/validator/v10"
+)
+
+// Manager
+type Manager struct {
+        cf          *config.Config
+        apiResponse response.ApiResponse
+        validator   *validator.Validate
+        repo        *repository.Repository
+}
+
+// Constructor NewManager
+func New(cf *config.Config, apiResponse response.ApiResponse, v *validator.Validate, repo *repository.Repository) *Manager <span class="cov0" title="0">{
+        return &amp;Manager{cf, apiResponse, v, repo}
+}</span>
+
+// Returns the ApiResponse
+func (m *Manager) GetApiResponse() response.ApiResponse <span class="cov0" title="0">{
+        return m.apiResponse
+}</span>
+
+func (m *Manager) GetValidator() *validator.Validate <span class="cov0" title="0">{
+        return m.validator
+}</span>
+
+// Returns a copy of the config
+func (m *Manager) GetConfig() config.Config <span class="cov0" title="0">{
+        return *m.cf
+}</span>
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">package repository
+
+type RepositoryFizz struct {
+        *Repository
+}
+
+func NewFizzRepository(repo *Repository) *RepositoryFizz <span class="cov0" title="0">{
+        return &amp;RepositoryFizz{
+                repo,
+        }
+}</span>
+
+// AuditRequest
+// func (r *RepositoryFizz) AuditRequest(checksum string) {
+//         res, err := r.db.Exec("DELETE FROM auth_brand WHERE code = ?", code)
+//         if err != nil {
+//                 return 0, nil
+//         }
+//         return res.RowsAffected()
+// }
+</pre>
+		
+		<pre class="file" id="file7" style="display: none">package repository
+
+import "database/sql"
+
+type Repository struct {
+        db *sql.DB
+}
+
+// NewRepository
+func NewRepository(Db *sql.DB) *Repository <span class="cov0" title="0">{
+        return &amp;Repository{Db}
+}</span>
+</pre>
+		
+		<pre class="file" id="file8" style="display: none">package response
+
+import (
+        "encoding/json"
+        "net/http"
+)
+
+const (
+        StatusError   = "error"
+        StatusSuccess = "success"
+        StatusWarning = "warning"
+
+        ErrorInvalidData         = "INVALID_DATA_ERR"
+        ErrorInvalidField        = "INVALID_FIELD_ERR"
+        ErrorInternalServerError = "INTERNAL_SERVER_ERR"
+        ErrorRouteNotFound       = "ROUTE_NOT_FOUND_ERR"
+        ErrorMethodNotAllowed    = "METHOD_NOT_ALLOWED_ERR"
+)
+
+type ApiResponse struct {
+        StatusCode int         `json:"-"`
+        Status     string      `json:"status"`
+        Messages   []ApiError  `json:"messages"`
+        Data       interface{} `json:"data"`
+}
+
+type ApiError struct {
+        Code    string `json:"code"`
+        Field   string `json:"field"`
+        Message string `json:"message"`
+}
+
+// Constructor of the new error
+func NewApiError(code string, message string, field string) *ApiError <span class="cov0" title="0">{
+        return &amp;ApiError{
+                Code:    code,
+                Field:   field,
+                Message: message,
+        }
+}</span>
+
+// Redefine the error interface function
+func (c *ApiError) Error() string <span class="cov0" title="0">{
+        return c.Message
+}</span>
+
+// New create a new Response
+func NewApiResponse(statusCode int, status string, errorMessages []ApiError, data interface{}) *ApiResponse <span class="cov0" title="0">{
+        return &amp;ApiResponse{
+                StatusCode: statusCode,
+                Status:     status,
+                Messages:   errorMessages,
+                Data:       data,
+        }
+}</span>
+
+// Set api reponse status code
+func (res *ApiResponse) SetStatusCode(statusCode int) *ApiResponse <span class="cov0" title="0">{
+        res.StatusCode = statusCode
+        return res
+}</span>
+
+// Set api reponse content status
+func (res *ApiResponse) SetStatus(status string) *ApiResponse <span class="cov0" title="0">{
+        res.Status = status
+        return res
+}</span>
+
+// Set api reponse content data
+func (res *ApiResponse) SetData(data interface{}) *ApiResponse <span class="cov0" title="0">{
+        res.Data = data
+        return res
+}</span>
+
+// Set api reponse meta data
+func (res *ApiResponse) SetErrorMessages(messages []ApiError) *ApiResponse <span class="cov0" title="0">{
+        res.Messages = messages
+        return res
+}</span>
+
+// Set custom error reponse to be returned
+func (res *ApiResponse) SetCustomErrorResponse(httpCode int, status string, messages []ApiError) *ApiResponse <span class="cov0" title="0">{
+        res.SetStatusCode(httpCode)
+        res.SetStatus(status)
+        res.SetErrorMessages(messages)
+        return res
+}</span>
+
+// Set automatique bad request reponse
+func (res *ApiResponse) SetBadRequestResponse(messages []ApiError) *ApiResponse <span class="cov0" title="0">{
+        res.SetCustomErrorResponse(http.StatusBadRequest, StatusError, messages)
+        return res
+}</span>
+
+// Set automatique forbidden reponse
+func (res *ApiResponse) SetForbiddenResponse(messages []ApiError) *ApiResponse <span class="cov0" title="0">{
+        res.SetCustomErrorResponse(http.StatusForbidden, StatusError, messages)
+        return res
+}</span>
+
+// Set automatique bad request reponse
+func (res *ApiResponse) SetNotFoundResponse(messages []ApiError) *ApiResponse <span class="cov0" title="0">{
+        res.SetCustomErrorResponse(http.StatusNotFound, StatusError, messages)
+        return res
+}</span>
+
+// Set automatique bad request reponse
+func (res *ApiResponse) SetInternalServerErrorResponse(messages []ApiError) *ApiResponse <span class="cov0" title="0">{
+        res.SetCustomErrorResponse(http.StatusInternalServerError, StatusError, messages)
+        return res
+}</span>
+
+// Add new error message to error list
+func (res *ApiResponse) AddErrorMessage(msg ApiError) <span class="cov0" title="0">{
+        res.Messages = append(res.Messages, msg)
+}</span>
+
+// Returns new error struct from code and message
+func (res *ApiResponse) CreateErrorMessage(code string, field string, message string) ApiError <span class="cov0" title="0">{
+        return ApiError{code, field, message}
+}</span>
+
+func (res *ApiResponse) GetErrorMessageSlice(code string, field string, message string) []ApiError <span class="cov0" title="0">{
+        var erros []ApiError
+        erros = append(erros, res.CreateErrorMessage(code, field, message))
+        return erros
+}</span>
+
+// WriteJson output write json response
+func (res *ApiResponse) WriteJsonResponse(w http.ResponseWriter) <span class="cov0" title="0">{
+        w.Header().Set("Content-Type", "application/json")
+        w.WriteHeader(res.StatusCode)
+        resp, _ := json.Marshal(res)
+        w.Write(resp)
+}</span>
+</pre>
+		
+		<pre class="file" id="file9" style="display: none">package server
+
+import (
+        "context"
+        cst "fizzbuzz/constant"
+        "fizzbuzz/container"
+        "fizzbuzz/response"
+        "net/http"
+        "os"
+        "os/signal"
+        "strconv"
+        "time"
+
+        "github.com/gin-gonic/gin"
+
+        "github.com/sirupsen/logrus"
+)
+
+const (
+        // Timeout delay and graceful shutdown deadline
+        Timeout     = time.Second * 180
+        IdleTimeout = 60
+        pingURL     = "/ping"
+)
+
+// Server httpServer struct
+type Server struct {
+        container *container.Container
+}
+
+// New create server
+func New(cntnr *container.Container) *Server <span class="cov0" title="0">{
+        return &amp;Server{
+                container: cntnr,
+        }
+}</span>
+
+// Run launch http server
+func (s *Server) Run() <span class="cov0" title="0">{
+
+        host := "0.0.0.0:"
+
+        //Windows OS : avoid firewall asking to allow network connections every execution time"
+        // if s.container.Conf.Env == "localhost" {
+        //         host = "localhost:"
+        // }
+
+        server := &amp;http.Server{
+                Addr: host + strconv.Itoa(s.container.Conf.Port),
+                // Good practice to set timeouts to avoid Slowloris attacks.
+                WriteTimeout: Timeout,
+                ReadTimeout:  Timeout,
+                IdleTimeout:  IdleTimeout,
+                Handler:      s.Handler(),
+        }
+        go func() </span><span class="cov0" title="0">{
+                if err := server.ListenAndServe(); err != nil &amp;&amp; err != http.ErrServerClosed </span><span class="cov0" title="0">{
+                        logrus.Fatal(err)
+                }</span>
+        }()
+
+        // Process signals channel
+        <span class="cov0" title="0">sigChannel := make(chan os.Signal, 1)
+
+        // Graceful shutdown via SIGINT
+        signal.Notify(sigChannel, os.Interrupt)
+
+        logrus.Info("Server running...")
+        &lt;-sigChannel // Block until SIGINT received
+
+        ctx, cancel := context.WithTimeout(context.Background(), Timeout)
+        defer cancel()
+
+        server.Shutdown(ctx)
+
+        logrus.Warn("Server shutdown")</span>
+}
+
+func (s *Server) Handler() *gin.Engine <span class="cov0" title="0">{
+
+        router := gin.New()
+        router.HandleMethodNotAllowed = true
+        router.Use(s.Logger())
+        router.Use(gin.CustomRecovery(func(c *gin.Context, err interface{}) </span><span class="cov0" title="0">{
+                logrus.Error(err)
+                s.panicRecoveryHandler(c.Writer, c.Request)
+        }</span>))
+        <span class="cov0" title="0">router.NoRoute(gin.HandlerFunc(func(c *gin.Context) </span><span class="cov0" title="0">{
+                s.notFoundHandler(c.Writer, c.Request)
+        }</span>))
+        <span class="cov0" title="0">router.NoMethod(gin.HandlerFunc(func(c *gin.Context) </span><span class="cov0" title="0">{
+                s.methodNotAllowedHandler(c.Writer, c.Request)
+        }</span>))
+
+        //ping
+        <span class="cov0" title="0">router.GET(pingURL, func(c *gin.Context) </span><span class="cov0" title="0">{
+                c.String(http.StatusOK, "Ping OK !")
+        }</span>)
+
+        //documentation de l'api
+        <span class="cov0" title="0">router.Static("/swagger", "./swaggerui")
+
+        //api subrouter v1
+        v1 := router.Group(cst.URLPrefixVersion)
+
+        //fizzbuzz routes
+        v1.POST(cst.FizzBaseURI, func(c *gin.Context) </span><span class="cov0" title="0">{
+                s.container.FizzAction.HandleFizz(c.Writer, c.Request)
+        }</span>)
+        <span class="cov0" title="0">v1.GET(cst.FizzStatisticsURI, func(c *gin.Context) </span><span class="cov0" title="0">{
+                s.container.FizzAction.HandleStatistics(c.Writer, c.Request)
+        }</span>)
+
+        <span class="cov0" title="0">return router</span>
+
+}
+
+// notFoundHandler
+func (s *Server) notFoundHandler(w http.ResponseWriter, r *http.Request) <span class="cov0" title="0">{
+
+        w.Header().Set("Content-Type", "application/json")
+
+        res := response.NewApiResponse(http.StatusNotFound, response.StatusError, make([]response.ApiError, 0), nil)
+        res.SetErrorMessages(res.GetErrorMessageSlice(response.ErrorRouteNotFound, "", "Route Not Found."))
+        res.WriteJsonResponse(w)
+
+        return
+}</span>
+
+// panicRecoveryHandler (in case of 'panic' call during process, return a custom 500 internal server error instead of nothing.)
+func (s *Server) panicRecoveryHandler(w http.ResponseWriter, r *http.Request) <span class="cov0" title="0">{
+
+        w.Header().Set("Content-Type", "application/json")
+
+        gin.Recovery()
+
+        res := response.NewApiResponse(http.StatusInternalServerError, response.StatusError, make([]response.ApiError, 0), nil)
+        res.SetErrorMessages(res.GetErrorMessageSlice(response.ErrorInternalServerError, "", "Internal Server Error"))
+        res.WriteJsonResponse(w)
+
+        return
+}</span>
+
+// methodNotAllowedHandler
+func (s *Server) methodNotAllowedHandler(w http.ResponseWriter, r *http.Request) <span class="cov0" title="0">{
+
+        w.Header().Set("Content-Type", "application/json")
+
+        res := response.NewApiResponse(http.StatusMethodNotAllowed, response.StatusError, make([]response.ApiError, 0), nil)
+        res.SetErrorMessages(res.GetErrorMessageSlice(response.ErrorMethodNotAllowed, "", "Method is not allowed."))
+        res.WriteJsonResponse(w)
+
+        return
+}</span>
+
+// audit requests and response to DB
+func (s *Server) Logger() gin.HandlerFunc <span class="cov0" title="0">{
+        return func(c *gin.Context) </span><span class="cov0" title="0">{
+
+                // before request
+                //TO DO
+                //go s.container.RepoFizz.AuditRequest()
+                logrus.Info("TEST")
+                logrus.Info("TEST2")
+                // c.Next()
+                logrus.Info("TEST3")
+                logrus.Info("TEST4")
+                // after request
+                //TO DO
+                //go s.container.RepoFizz.AuditResponse()
+
+        }</span>
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

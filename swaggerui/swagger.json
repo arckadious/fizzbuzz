@@ -1,0 +1,302 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "fizzbuzz",
+    "contact": {},
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "{host}",
+      "variables": {
+        "host": {
+          "default": "http://api.localhost:8080"
+        }
+      }
+    }
+  ],
+  "tags": [
+    {
+      "name": "api"
+    },
+    {
+      "name": "swagger & ping"
+    }
+  ],
+  "paths": {
+    "/v1/fizzbuzz": {
+      "post": {
+        "tags": [
+          "api"
+        ],
+        "summary": "POST",
+        "description": "Returns a list of strings with numbers from 1 to limit, where: all multiples specified are replaced by text.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/fizzbuzz"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                },
+                "example": {
+                  "status": "success",
+                  "messages": [],
+                  "data": "1,2,fizz,4,buzz,fizz,7,8,fizz,buzz,11,fizz,13,14,fizzbuzz,16,17,fizz,19,buzz,fizz,22,23,fizz,buzz,26,fizz,28,29,fizzbuzz,31,32,fizz,34,buzz,fizz,37,38,fizz,buzz,41,fizz,43,44,fizzbuzz,46,47,fizz,49,buzz,fizz,52,53,fizz,buzz,56,fizz,58,59,fizzbuzz,61,62,fizz,64,buzz,fizz,67,68,fizz,buzz,71,fizz,73,74,fizzbuzz,76,77,fizz,79,buzz,fizz,82,83,fizz,buzz,86,fizz,88,89,fizzbuzz,91,92,fizz,94,buzz,fizz,97,98,fizz,buzz"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/v1/statistics": {
+      "get": {
+        "tags": [
+          "api"
+        ],
+        "summary": "GET",
+        "description": "Return the parameters corresponding to the most used request, as well as the number of hits for this request",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                },
+                "example": {
+                  "status": "success",
+                  "messages": [],
+                  "data": {
+                    "hits": 56,
+                    "request": {
+                      "multiples": [
+                        {
+                          "intX": 3,
+                          "strX": "fizz"
+                        },
+                        {
+                          "intX": 5,
+                          "strX": "buzz"
+                        }
+                      ],
+                      "limit": 100
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ping": {
+      "get": {
+        "tags": [
+          "swagger & ping"
+        ],
+        "summary": "GET",
+        "description": "Check api state",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "plain/text": {
+                "schema": {
+                  "type": "string",
+                  "example": "Ping OK !"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/swagger": {
+      "get": {
+        "tags": [
+          "swagger & ping"
+        ],
+        "summary": "GET",
+        "description": "swagger documentation",
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ErrorResponse": {
+        "title": "ErrorResponse",
+        "required": [
+          "data",
+          "messages",
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string"
+          },
+          "messages": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "data": {
+            "type": "string"
+          }
+        },
+        "example": {
+          "status": "error",
+          "messages": [
+            {
+              "code": "<Error code here>",
+              "message": "<Error detail here>"
+            }
+          ],
+          "data": ""
+        }
+      },
+      "SuccessResponse": {
+        "title": "SuccessResponse",
+        "required": [
+          "data",
+          "messages",
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string"
+          },
+          "messages": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "data": {
+            "type": "object"
+          }
+        },
+        "example": {
+          "status": "success",
+          "messages": [],
+          "data": ""
+        }
+      },
+      "fizzbuzz": {
+        "title": "fizzbuzz",
+        "required": [
+          "limit"
+        ],
+        "type": "object",
+        "properties": {
+          "limit": {
+            "type": "integer"
+          },
+          "multiples": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "intX": {
+                  "type" : "integer"
+                },
+                "strX": {
+                  "type" : "string"
+                }
+              }
+            }
+          }
+        },
+        "example": {
+          "multiples": [
+            {
+              "intX": 3,
+              "strX": "fizz"
+            },
+            {
+              "intX": 5,
+              "strX": "buzz"
+            }
+          ],
+          "limit": 100
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,31 @@
+FROM debian:bookworm
+
+# Set Timezone
+ENV TZ Europe/Paris
+
+ENV GOROOT=/usr/local/go
+ENV PATH=$GOROOT/bin:$PATH 
+ARG GO_VERSION=1.19.8
+
+# for latest version, set env value to : master
+ARG AIR_VERSION=v1.43.0 
+
+RUN apt-get update -yq \
+&& apt-get -y upgrade \
+&& apt-get install curl -yq 
+
+RUN curl -o go${GO_VERSION}.tar.gz https://dl.google.com/go/go${GO_VERSION}.linux-amd64.tar.gz \
+&& tar -xf go${GO_VERSION}.tar.gz -C /usr/local
+
+RUN go version
+
+RUN curl -sSfL https://raw.githubusercontent.com/cosmtrek/air/${AIR_VERSION}/install.sh | sh -s -- -b ${GOROOT}/bin
+
+RUN apt-get clean -y
+
+COPY . /fizzbuzz-api/
+
+WORKDIR /fizzbuzz-api 
+
+# keep container Up to avoid terminating
+ENTRYPOINT [ "tail", "-f", "/dev/null" ] 

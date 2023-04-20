@@ -1,0 +1,57 @@
+FROM debian:latest AS compile-image
+
+ENV GOROOT=/usr/local/go
+ENV PATH=$GOROOT/bin:$PATH 
+ARG GO_VERSION=1.19.8
+
+RUN apt-get update -yq \
+&& apt-get -y upgrade \
+&& apt-get install curl -yq 
+
+RUN curl -o go${GO_VERSION}.tar.gz https://dl.google.com/go/go${GO_VERSION}.linux-amd64.tar.gz \
+&& tar -xf go${GO_VERSION}.tar.gz -C /usr/local
+
+RUN apt-get clean -y
+
+COPY . /fizzbuzz-api/
+
+WORKDIR /fizzbuzz-api 
+
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -o fizzbuzz-api
+
+##############################
+#######  deploy image  #######
+##############################
+FROM alpine:latest
+
+EXPOSE 8000
+
+RUN apk update
+
+RUN mkdir go
+
+#Create system user : https://wiki.alpinelinux.org/wiki/Setting_up_a_new_user#adduser System User: This is the type of account that is created only for a specific purpose or software.
+RUN addgroup -g 995 -S go-exec && adduser -S -H -h /go -u 998 -G go-exec -s /bin/false go-exec 
+
+#The location information of time is extracted from the local file system. Most systems support it, but it still depends on the current system -> https://ddcode.net/2019/06/30/panic-time-missing-location-in-call-to-time-in/
+RUN apk add --no-cache tzdata 
+
+# Set Timezone
+ENV TZ Europe/Paris
+
+
+WORKDIR /go
+
+COPY --from=compile-image /fizzbuzz-api/fizzbuzz-api /go/
+COPY --from=compile-image /fizzbuzz-api/swaggerui/ /go/swaggerui
+# COPY --from=compile-image /fizzbuzz-api/parameters/parameters.json /go/config/config.json
+
+# The user become owner of the folder "go". the '-R' flag allows the recursive mode.
+RUN chown -R go-exec /go
+USER go-exec
+
+ENTRYPOINT [ "./fizzbuzz-api", "-config", "/go/config/config.json" ]
+
+
+
+

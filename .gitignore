@@ -1,0 +1,13 @@
+/docs/
+/var/*
+!/var/logs
+/var/logs/*
+!var/logs/.gitkeep
+/vendor/
+*.exe
+debug
+/.vscode
+fizzbuzz
+/tmp/
+/.history
+.DS_Store
