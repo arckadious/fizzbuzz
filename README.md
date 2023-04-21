@@ -26,11 +26,11 @@ ______________
 - [:mag: Configuration](#mag-configuration)
 - [:page_with_curl: Logs](#page_with_curl-logs)
 - [:link: Local development](#link-local-development)
-- [:trident: API Endpoints <a id="endpoints"></a>](#trident-api-endpoints-a-idendpointsa)
+- [:trident: API Endpoints](#trident-api-endpoints)
   - [Main endpoint](#main-endpoint)
   - [Most request used](#most-request-used)
   - [Doc OpenAPI(swagger)](#doc-openapiswagger)
-  - [:green_heart: Health check <a id="healthcheck"></a>](#green_heart-health-check-a-idhealthchecka)
+  - [:green_heart: Health check](#green_heart-health-check)
     - [Ping](#ping)
 - [:file_folder: Workspace](#file_folder-workspace)
 - [:briefcase: Author](#briefcase-author)
@@ -149,7 +149,7 @@ Local tools are available to make yourself comfortable :
 
 > For more details, see [nginx.conf](nginx.conf) and [Docker-compose.yml](docker-compose.yml)
 
-## :trident: API Endpoints <a id="endpoints"></a>
+## :trident: API Endpoints
 
 
 ### Main endpoint
@@ -173,7 +173,7 @@ http://api.localhost:8080/v1/statistics
 
 http://api.localhost:8080/swagger
 
-### :green_heart: Health check <a id="healthcheck"></a>
+### :green_heart: Health check
 #### Ping
 -  /ping
 
