@@ -104,7 +104,7 @@ func New(fileName string, validator validator.Validate) *Config {
 	if c.Env != "localhost" {
 		gin.SetMode(gin.ReleaseMode)
 	} else {
-		f, err := os.Create("gin.log")
+		f, err := os.Open("gin.log")
 		if err != nil {
 			logrus.Error(err)
 		}

@@ -131,6 +131,7 @@ This application use 2 types of logs:
 
  - Error log in standard output and exit the application
  - Applicatives logs in audit database (MySQL)
+ - Gin framework logs on localhost environment in gin.log file
 
 ## :link: Local development
 
