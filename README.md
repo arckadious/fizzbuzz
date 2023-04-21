@@ -10,7 +10,6 @@ Fizzbuzz is a web server. It has two REST API endpoints, one will return the lis
 ______________
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [:arrows_clockwise: Requirements](#arrows_clockwise-requirements)
       - [Local Requirements](#local-requirements)
