@@ -1,25 +1,27 @@
 package manager
 
 import (
+	"encoding/json"
 	"net/http"
 	"strconv"
 	"strings"
 
 	"github.com/arckadious/fizzbuzz/model"
 	"github.com/arckadious/fizzbuzz/repository"
+	"github.com/arckadious/fizzbuzz/response"
 )
 
 // Manager fizz
 type Fizz struct {
 	*Manager //Fizz class has attributes and methods from manager parent class
-	repo     *repository.RepositoryFizz
+	repoFizz *repository.RepositoryFizz
 }
 
 // NewFizz Constructor
 func NewFizz(m *Manager, repo *repository.RepositoryFizz) *Fizz {
 	return &Fizz{
-		Manager: m,
-		repo:    repo,
+		Manager:  m,
+		repoFizz: repo,
 	}
 }
 
@@ -54,6 +56,23 @@ func (m *Fizz) HandleStatistics(w http.ResponseWriter) {
 
 	res := m.GetApiResponse()
 
+	msg, hits, noRows, err := m.repoFizz.GetMostRequestUsed()
+	if err != nil {
+		if noRows {
+			res.SetStatusCode(http.StatusPartialContent).WriteJsonResponse(w)
+			return
+		}
+		res.SetInternalServerErrorResponse([]response.ApiError{{Code: response.ErrorInternalServerError, Message: err.Error()}}).WriteJsonResponse(w)
+		return
+	}
+
+	var msgStruct model.Input
+	err = json.Unmarshal([]byte(msg), &msgStruct)
+	if err != nil {
+		res.SetInternalServerErrorResponse([]response.ApiError{{Code: response.ErrorInternalServerError, Message: err.Error()}}).WriteJsonResponse(w)
+		return
+	}
+
 	//TO DO
-	res.SetData("NOT IMPLEMENTED YET").WriteJsonResponse(w)
+	res.SetData(model.Output{Hits: hits, Request: msgStruct}).WriteJsonResponse(w)
 }

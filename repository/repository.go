@@ -23,6 +23,9 @@ func (r *Repository) LogToDB(logType, msg, url, corID, checksum, status string) 
 	if strings.ToUpper(logType) != "REQUEST" && strings.ToUpper(logType) != "RESPONSE" {
 		logrus.Error("Logger coudn't audit data: Logger Type unkwown.")
 		return
+	} else if corID == "" {
+		logrus.Error("Logger coudn't audit data: corID empty -", corID)
+		return
 	}
 
 	hostname, _ := os.Hostname()

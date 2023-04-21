@@ -7,3 +7,8 @@ type Input struct {
 	} `validate:"gte=0,lte=2,dive"`
 	Limit int `validate:"gt=0,lte=1000000"`
 }
+
+type Output struct {
+	Request Input `json:"request"`
+	Hits    int   `json:"hits"`
+}

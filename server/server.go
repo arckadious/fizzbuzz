@@ -3,7 +3,8 @@ package server
 import (
 	"bytes"
 	"context"
-	"io"
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -13,6 +14,7 @@ import (
 
 	cst "github.com/arckadious/fizzbuzz/constant"
 	"github.com/arckadious/fizzbuzz/container"
+	"github.com/arckadious/fizzbuzz/model"
 	"github.com/arckadious/fizzbuzz/response"
 	"github.com/arckadious/fizzbuzz/util"
 
@@ -25,7 +27,6 @@ const (
 	// Timeout delay and graceful shutdown deadline
 	Timeout     = time.Second * 180
 	IdleTimeout = 60
-	pingURL     = "/ping"
 )
 
 type bodyLogWriter struct {
@@ -108,7 +109,7 @@ func (s *Server) Handler() *gin.Engine {
 	}))
 
 	//ping
-	router.GET(pingURL, func(c *gin.Context) {
+	router.GET("/ping", func(c *gin.Context) {
 		c.String(http.StatusOK, "Ping OK !")
 	})
 
@@ -175,13 +176,20 @@ func (s *Server) Logger() gin.HandlerFunc {
 		//Generate unique ID to make link between request and its associated response (stored in a different table)
 		corID, _ := util.GenerateUUID()
 
-		body, err := io.ReadAll(c.Request.Body)
+		body, err := util.ExtractBody(c.Request)
 		if err != nil {
 			logrus.Error("Logger coudn't send request data: ", err)
 			return
 		}
-		c.Request.Body = io.NopCloser(bytes.NewReader(body))
-		go s.container.Repo.LogToDB("request", string(body), cst.Scheme+"://"+path.Join(c.Request.Host, c.Request.RequestURI), corID, "", "")
+
+		//Create a checksum for the current request, only if it's the main endpoint (/fizzbuzz) and data is valid.
+		var data model.Input
+		checksum := ""
+		if c.Request.RequestURI == cst.URLPrefixVersion+cst.FizzBaseURI && json.Unmarshal(body, &data) == nil && s.container.Validator.Struct(data) == nil {
+			checksum = util.GetMD5Hash(fmt.Sprint(data))
+		}
+
+		go s.container.Repo.LogToDB("request", string(body), cst.Scheme+"://"+path.Join(c.Request.Host, c.Request.RequestURI), corID, checksum, "")
 
 		// Intercept Writer in order to get response body
 		blw := &bodyLogWriter{body: bytes.NewBufferString(""), ResponseWriter: c.Writer}
@@ -189,7 +197,7 @@ func (s *Server) Logger() gin.HandlerFunc {
 
 		c.Next()
 
-		go s.container.Repo.LogToDB("response", blw.body.String(), "", corID, "", strconv.Itoa(c.Writer.Status()))
+		go s.container.Repo.LogToDB("response", blw.body.String(), "", corID, checksum, strconv.Itoa(c.Writer.Status()))
 
 	}
 }
