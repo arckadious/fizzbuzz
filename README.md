@@ -129,14 +129,14 @@ Check this config file [/parameters/parameters.json](/parameters/parameters.json
 This application use 2 types of logs:
 
  - Error log in standard output and exit the application
- - Applicatives logs in audit database (MySQL)
+ - Applicatives logs stored in audit database (MySQL)
  - Gin framework logs on localhost environment in gin.log file
 
 ## :link: Local development
 
 Local tools are available to make yourself comfortable :
 - Local MySQL database + phpmyadmin web interface.
-- Dozzle (log monitoring for all containers).
+- Dozzle (log and memory monitoring for all containers).
 - Swagger Web interface.
 
 | ENV |URL| 
