@@ -97,6 +97,11 @@ func (s *Server) Handler() *gin.Engine {
 	router := gin.New()
 	router.HandleMethodNotAllowed = true
 	router.Use(s.Logger())
+
+	if s.container.Conf.Env == "localhost" {
+		router.Use(gin.Logger()) //debug logger local development
+	}
+
 	router.Use(gin.CustomRecovery(func(c *gin.Context, err interface{}) {
 		logrus.Error(err)
 		s.panicRecoveryHandler(c.Writer, c.Request)
