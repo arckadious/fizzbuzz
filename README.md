@@ -11,6 +11,7 @@ ______________
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
+
 - [:arrows_clockwise: Requirements](#arrows_clockwise-requirements)
       - [Local Requirements](#local-requirements)
 - [:package: Dependencies](#package-dependencies)
@@ -24,6 +25,7 @@ ______________
 - [:whale: Environment](#whale-environment)
 - [:mag: Configuration](#mag-configuration)
 - [:page_with_curl: Logs](#page_with_curl-logs)
+  - [Applicative logs](#applicative-logs)
 - [:link: Local development](#link-local-development)
 - [:trident: API Endpoints](#trident-api-endpoints)
   - [Main endpoint](#main-endpoint)
@@ -129,8 +131,24 @@ Check this config file [/parameters/parameters.json](/parameters/parameters.json
 This application use 2 types of logs:
 
  - Error log in standard output and exit the application
- - Applicatives logs stored in audit database (MySQL)
+ - Applicatives logs stored in audit database
  - Gin framework logs on localhost environment in gin.log file
+
+### Applicative logs
+
+Fizzbuzz API use a logger middleware, which send requests and responses to a MySQL Database. 
+>'/swagger' api endpoint is excluded from applicative logs.
+
+You can see these logs at phpmyadmin.localhost:8080. Requests and responses are separated in two tables, and bound by a "COR_ID".
+
+````sql
+-- SQL Left Join example to use the COR_ID bind
+SELECT APP_NAME, STATUS, SERVICE_ADDRESS, HOST, mr.MSG as REQUEST,
+mp.MSG as RESPONSE, mr.COR_ID, mr.DT_CREATION as DT_CREATION_REQ,
+mp.DT_CREATION as DT_CREATION_RESP
+FROM MESSAGES_REQUEST as mr
+LEFT JOIN MESSAGES_RESPONSE as mp ON mr.COR_ID = mp.COR_ID;
+````
 
 ## :link: Local development
 
