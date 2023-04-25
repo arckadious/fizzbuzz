@@ -19,13 +19,18 @@ RUN curl -o go${GO_VERSION}.tar.gz https://dl.google.com/go/go${GO_VERSION}.linu
 
 RUN go version
 
+RUN touch /var/log/messages.log
+
 RUN curl -sSfL https://raw.githubusercontent.com/cosmtrek/air/${AIR_VERSION}/install.sh | sh -s -- -b ${GOROOT}/bin
 
 RUN apt-get clean -y
 
 COPY . /fizzbuzz-api/
 
-WORKDIR /fizzbuzz-api 
+WORKDIR /fizzbuzz-api
 
 # keep container Up to avoid terminating
-ENTRYPOINT [ "tail", "-f", "/dev/null" ] 
+# ENTRYPOINT [ "tail", "-f", "/dev/null" ] 
+
+# Register logs from 'make run' and 'make srv' commands for dozzle.
+ENTRYPOINT [ "tail", "-f", "/var/log/messages.log" ] 
