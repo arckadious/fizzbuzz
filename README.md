@@ -26,6 +26,7 @@ ______________
 - [:mag: Configuration](#mag-configuration)
 - [:page_with_curl: Logs](#page_with_curl-logs)
   - [Applicative logs](#applicative-logs)
+  - [Gin Framework Logs](#gin-framework-logs)
 - [:link: Local development](#link-local-development)
 - [:trident: API Endpoints](#trident-api-endpoints)
   - [Main endpoint](#main-endpoint)
