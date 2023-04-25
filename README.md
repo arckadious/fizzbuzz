@@ -19,8 +19,8 @@ ______________
     - [Remote Uses](#remote-uses)
     - [Start containers](#start-containers)
     - [Local Installation](#local-installation)
-    - [Run Server (with air)](#run-server-with-air)
-    - [Run Server (without air)](#run-server-without-air)
+    - [Run API Server (with air)](#run-api-server-with-air)
+    - [Run API Server (without air)](#run-api-server-without-air)
     - [Run Tests](#run-tests)
 - [:whale: Environment](#whale-environment)
 - [:mag: Configuration](#mag-configuration)
@@ -90,13 +90,13 @@ $ make install
   ````
 
 
-#### Run Server (with air)
+#### Run API Server (with air)
 > [What is air ?](https://github.com/cosmtrek/air)
 ````:shell 
 $ make srv
   ````
 
-#### Run Server (without air)
+#### Run API Server (without air)
 ````:shell 
 $ make run
   ````
