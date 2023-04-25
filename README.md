@@ -128,7 +128,7 @@ Check this config file [/parameters/parameters.json](/parameters/parameters.json
 
 ## :page_with_curl: Logs
 
-This application use 2 types of logs:
+This application use 3 types of logs:
 
  - Error log in standard output and exit the application
  - Applicatives logs stored in audit database
@@ -148,6 +148,23 @@ mp.MSG as RESPONSE, mr.COR_ID, mr.DT_CREATION as DT_CREATION_REQ,
 mp.DT_CREATION as DT_CREATION_RESP
 FROM MESSAGES_REQUEST as mr
 LEFT JOIN MESSAGES_RESPONSE as mp ON mr.COR_ID = mp.COR_ID;
+````
+
+### Gin Framework Logs
+
+Gin Framework log each request sent to fizzbuzz API.
+
+> gin.log logs are available only for localhost environment.
+
+- Example :
+````log
+[GIN-debug] GET    /swagger/*filepath        --> github.com/gin-gonic/gin.(*RouterGroup).createStaticHandler.func1 (3 handlers)
+[GIN-debug] HEAD   /swagger/*filepath        --> github.com/gin-gonic/gin.(*RouterGroup).createStaticHandler.func1 (3 handlers)
+[GIN-debug] GET    /ping                     --> github.com/arckadious/fizzbuzz/server.(*Server).Handler.func4 (4 handlers)
+[GIN-debug] POST   /v1/fizzbuzz              --> github.com/arckadious/fizzbuzz/server.(*Server).Handler.func5 (4 handlers)
+[GIN-debug] GET    /v1/statistics            --> github.com/arckadious/fizzbuzz/server.(*Server).Handler.func6 (4 handlers)
+[GIN] 2023/04/25 - 19:28:14 | 200 |        91.1µs |   192.168.208.5 | GET      "/ping"
+[GIN] 2023/04/25 - 19:40:49 | 405 |        40.5µs |   192.168.208.5 | PUT  "/v1/fizzbuzz"
 ````
 
 ## :link: Local development
