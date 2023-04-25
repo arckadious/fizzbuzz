@@ -123,8 +123,8 @@ Check this config file [/parameters/parameters.json](/parameters/parameters.json
 :exclamation: Sections to change by environment
 |Section|Description|
 |--|--|
-|env|api env|
-|database|mariadb informations|
+|env|api environment|
+|database|mariadb database configuration|
 
 ## :page_with_curl: Logs
 
