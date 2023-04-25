@@ -96,7 +96,6 @@ func (s *Server) Handler() *gin.Engine {
 
 	router := gin.New()
 	router.HandleMethodNotAllowed = true
-	router.Use(s.Logger())
 
 	if s.container.Conf.Env == "localhost" {
 		router.Use(gin.Logger()) //debug logger local development
@@ -113,16 +112,19 @@ func (s *Server) Handler() *gin.Engine {
 		s.methodNotAllowedHandler(c.Writer, c.Request)
 	}))
 
+	//documentation de l'api (exclu du loggerMiddleware)
+	router.Static("/swagger", "./swaggerui")
+
+	loggerRouter := router.Group("")
+	loggerRouter.Use(s.Logger())
+
 	//ping
-	router.GET("/ping", func(c *gin.Context) {
+	loggerRouter.GET("/ping", func(c *gin.Context) {
 		c.String(http.StatusOK, "Ping OK !")
 	})
 
-	//documentation de l'api
-	router.Static("/swagger", "./swaggerui")
-
 	//api subrouter v1
-	v1 := router.Group(cst.URLPrefixVersion)
+	v1 := loggerRouter.Group(cst.URLPrefixVersion)
 
 	//fizzbuzz routes
 	v1.POST(cst.FizzBaseURI, func(c *gin.Context) {

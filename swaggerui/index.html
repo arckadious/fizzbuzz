@@ -36,6 +36,14 @@
   <script src="./swagger-ui-bundle.js" charset="UTF-8"> </script>
   <script src="./swagger-ui-standalone-preset.js" charset="UTF-8"> </script>
   <script>
+    function HideTopbarPlugin() {
+      // this plugin overrides the Topbar component to return nothing
+      return {
+        components: {
+          Topbar: function() { return null }
+        }
+      }
+    }
     window.onload = function () {
       // Begin Swagger UI call region
       const ui = SwaggerUIBundle({
@@ -46,8 +54,17 @@
           SwaggerUIBundle.presets.apis,
           SwaggerUIStandalonePreset
         ],
+        // requestInterceptor: (req) => {
+        //   req.headers['Access-Control-Allow-Origin'] = '*'
+        //   return req;
+        // },
+        // requestInterceptor: function(request){
+        //     request.headers.Origin = `http://api.localhost:8080`;
+        //     return request;
+        // },
         plugins: [
-          SwaggerUIBundle.plugins.DownloadUrl
+          SwaggerUIBundle.plugins.DownloadUrl,
+          HideTopbarPlugin
         ],
         layout: "StandaloneLayout"
       });
