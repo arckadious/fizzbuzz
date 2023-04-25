@@ -27,7 +27,7 @@ ______________
 - [:page_with_curl: Logs](#page_with_curl-logs)
   - [Applicative logs](#applicative-logs)
   - [Gin Framework Logs](#gin-framework-logs)
-- [:link: Local development](#link-local-development)
+- [:link: Tools](#link-tools)
 - [:trident: API Endpoints](#trident-api-endpoints)
   - [Main endpoint](#main-endpoint)
   - [Most request used](#most-request-used)
@@ -168,7 +168,7 @@ Gin Framework log each request sent to fizzbuzz API.
 [GIN] 2023/04/25 - 19:40:49 | 405 |        40.5µs |   192.168.208.5 | PUT  "/v1/fizzbuzz"
 ````
 
-## :link: Local development
+## :link: Tools
 
 Local tools are available to make yourself comfortable :
 - Local MySQL database + phpmyadmin web interface.
