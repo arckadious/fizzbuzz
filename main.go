@@ -10,6 +10,7 @@ import (
 	"github.com/arckadious/fizzbuzz/container"
 	"github.com/arckadious/fizzbuzz/server"
 	"github.com/arckadious/fizzbuzz/validator"
+	"github.com/sirupsen/logrus"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -38,7 +39,10 @@ func init() {
 
 func main() {
 	validator := validator.New()
-	cf := config.New(paramFile, *validator)
+	cf, err := config.New(paramFile, *validator)
+	if err != nil {
+		logrus.Fatal(err)
+	}
 	server.New(
 		container.New(
 			cf,

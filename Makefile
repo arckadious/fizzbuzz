@@ -1,7 +1,7 @@
 ifeq ($(OS),Windows_NT)
-	HTML_TEST_OPEN = start "" "./testing_results/cover.html"
+	HTML_TEST_OPEN = start "" "./tests/cover.html"
 else 
-	HTML_TEST_OPEN = open ./testing_results/cover.html
+	HTML_TEST_OPEN = open ./tests/cover.html
 endif
 .PHONY: all clean down build start start-rp start-db start-logs restart stop stop-rp stop-db stop-logs kill rm in install update srv run bash sh tests
 
@@ -84,6 +84,6 @@ sh:
 	@$(DK_EXEC) sh
 
 tests:
-	@$(DK_EXEC) bash -c "go test -v -coverprofile testing_results/cover.out ./... && go tool cover -html testing_results/cover.out -o testing_results/cover.html"
+	@$(DK_EXEC) bash -c "go test -v -coverprofile tests/cover.out ./... && go tool cover -html tests/cover.out -o tests/cover.html"
 	@$(HTML_TEST_OPEN)
 	

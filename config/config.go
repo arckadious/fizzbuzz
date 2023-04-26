@@ -57,30 +57,38 @@ func (c *Config) GetRootPath() string {
 }
 
 func (c *Config) InitRootPath(val string) {
-	if c.rootPath != "" {
+	if c.rootPath == "" {
 		c.rootPath = val
 	}
 }
 
 // New create Config
-func New(fileName string, validator validator.Validate) *Config {
+func New(fileName string, validator validator.Validate) (c *Config, err error) {
 
-	var c Config
+	c = &Config{}
+	//define logrus text formatter
+	logrus.SetFormatter(&logrus.TextFormatter{
+		ForceColors:     true,
+		FullTimestamp:   true,
+		TimestampFormat: "2006-01-02 15:04:05",
+		//PadLevelText:    true,
+	})
+
 	configFile, err := os.Open(fileName)
 	if err != nil {
-		logrus.Fatal(err)
+		return
 	}
 	defer configFile.Close()
 
-	err = json.NewDecoder(configFile).Decode(&c)
+	err = json.NewDecoder(configFile).Decode(c)
 	if err != nil {
-		logrus.Fatal(err)
+		return
 	}
 
 	//Set Rootpath
 	rootPath, err := os.Getwd()
 	if err != nil {
-		logrus.Fatal(err)
+		return
 	}
 	c.InitRootPath(rootPath)
 
@@ -92,29 +100,22 @@ func New(fileName string, validator validator.Validate) *Config {
 		logrus.SetLevel(logrus.DebugLevel)
 	}
 
-	//define logrus text formatter
-	logrus.SetFormatter(&logrus.TextFormatter{
-		ForceColors:     true,
-		FullTimestamp:   true,
-		TimestampFormat: "2006-01-02 15:04:05",
-		//PadLevelText:    true,
-	})
-
 	//Set Gin mode
 	if c.Env != "localhost" {
 		gin.SetMode(gin.ReleaseMode)
 	} else {
-		f, err := os.OpenFile("gin.log", os.O_APPEND|os.O_CREATE|os.O_RDWR, 0644)
+		var f *os.File
+		f, err = os.OpenFile("gin.log", os.O_APPEND|os.O_CREATE|os.O_RDWR, 0644)
 		if err != nil {
-			logrus.Error(err)
+			return
 		}
 		gin.DefaultWriter = f
 	}
 
 	//validate fields from config
-	if err := validator.Struct(c); err != nil {
-		logrus.Fatal(err)
+	if err = validator.Struct(c); err != nil {
+		return
 	}
 
-	return &c
+	return
 }

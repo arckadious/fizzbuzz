@@ -58,6 +58,7 @@ Golang 1.19+
 |Go playground validator|github.com/go-playground/validator/v10|v10.12.0|
 |MySQL Go driver|github.com/go-sql-driver/mysql|v1.6.0|
 |Logrus|github.com/sirupsen/logrus|v1.9.0|
+|Testify|github.com/stretchr/testify|v1.8.2|
  
 
 ## :vertical_traffic_light: Usages
@@ -245,7 +246,7 @@ fizzbuzz
     │
     ├───swaggerui       >>> API documentation (Cf. swagger.json)
     │
-    ├───testing_results >>> contains 'make tests' results (with html coverage file)
+    ├───tests >>> contains 'make tests' results (with html coverage file)
     │
     └───validator
 ````

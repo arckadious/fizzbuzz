@@ -1,0 +1,17 @@
+{
+    "port": 8000,
+    "env": "toto",
+    "level": "info",
+    "database": {
+        "adapter": "mysql",
+        "host": "mariadb",
+        "username": "root",
+        "password": "admin",
+        "port": "3306",
+        "name": "DB",
+        "charset": "UTF8",
+        "maxOpenConns": 10,
+        "maxIdleConns": 1,
+        "maxConnLifeTime": 60
+    }
+}

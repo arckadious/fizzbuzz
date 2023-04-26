@@ -5,6 +5,7 @@ import (
 	"crypto/md5"
 	"crypto/rand"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -22,6 +23,10 @@ func GenerateUUID() (uuid string, err error) {
 }
 
 func ExtractBody(r *http.Request) (body []byte, err error) {
+	if r == nil {
+		err = errors.New("Extract body : request nil")
+		return
+	}
 	body, err = io.ReadAll(r.Body)
 	if err != nil {
 		return

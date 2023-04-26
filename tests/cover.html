@@ -57,7 +57,7 @@
 				
 				<option value="file0">github.com/arckadious/fizzbuzz/action/fizz/fizz.go (0.0%)</option>
 				
-				<option value="file1">github.com/arckadious/fizzbuzz/config/config.go (73.7%)</option>
+				<option value="file1">github.com/arckadious/fizzbuzz/config/config.go (89.7%)</option>
 				
 				<option value="file2">github.com/arckadious/fizzbuzz/container/container.go (0.0%)</option>
 				
@@ -75,7 +75,7 @@
 				
 				<option value="file9">github.com/arckadious/fizzbuzz/server/server.go (0.0%)</option>
 				
-				<option value="file10">github.com/arckadious/fizzbuzz/util/util.go (0.0%)</option>
+				<option value="file10">github.com/arckadious/fizzbuzz/util/util.go (94.1%)</option>
 				
 				</select>
 			</div>
@@ -189,36 +189,44 @@ func (c *Config) UnmarshalJSON(data []byte) error <span class="cov8" title="1">{
         return nil</span>
 }
 
-func (c *Config) GetRootPath() string <span class="cov0" title="0">{
+func (c *Config) GetRootPath() string <span class="cov8" title="1">{
 
         return c.rootPath
 }</span>
 
 func (c *Config) InitRootPath(val string) <span class="cov8" title="1">{
-        if c.rootPath != "" </span><span class="cov0" title="0">{
+        if c.rootPath == "" </span><span class="cov8" title="1">{
                 c.rootPath = val
         }</span>
 }
 
 // New create Config
-func New(fileName string, validator validator.Validate) *Config <span class="cov8" title="1">{
+func New(fileName string, validator validator.Validate) (c *Config, err error) <span class="cov8" title="1">{
 
-        var c Config
+        c = &amp;Config{}
+        //define logrus text formatter
+        logrus.SetFormatter(&amp;logrus.TextFormatter{
+                ForceColors:     true,
+                FullTimestamp:   true,
+                TimestampFormat: "2006-01-02 15:04:05",
+                //PadLevelText:    true,
+        })
+
         configFile, err := os.Open(fileName)
-        if err != nil </span><span class="cov0" title="0">{
-                logrus.Fatal(err)
+        if err != nil </span><span class="cov8" title="1">{
+                return
         }</span>
         <span class="cov8" title="1">defer configFile.Close()
 
-        err = json.NewDecoder(configFile).Decode(&amp;c)
-        if err != nil </span><span class="cov0" title="0">{
-                logrus.Fatal(err)
+        err = json.NewDecoder(configFile).Decode(c)
+        if err != nil </span><span class="cov8" title="1">{
+                return
         }</span>
 
         //Set Rootpath
         <span class="cov8" title="1">rootPath, err := os.Getwd()
         if err != nil </span><span class="cov0" title="0">{
-                logrus.Fatal(err)
+                return
         }</span>
         <span class="cov8" title="1">c.InitRootPath(rootPath)
 
@@ -230,31 +238,24 @@ func New(fileName string, validator validator.Validate) *Config <span class="cov
                 logrus.SetLevel(logrus.DebugLevel)
         }</span>
 
-        //define logrus text formatter
-        <span class="cov8" title="1">logrus.SetFormatter(&amp;logrus.TextFormatter{
-                ForceColors:     true,
-                FullTimestamp:   true,
-                TimestampFormat: "2006-01-02 15:04:05",
-                //PadLevelText:    true,
-        })
-
         //Set Gin mode
-        if c.Env != "localhost" </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if c.Env != "localhost" </span><span class="cov8" title="1">{
                 gin.SetMode(gin.ReleaseMode)
         }</span> else<span class="cov8" title="1"> {
-                f, err := os.OpenFile("gin.log", os.O_APPEND|os.O_CREATE|os.O_RDWR, 0644)
+                var f *os.File
+                f, err = os.OpenFile("gin.log", os.O_APPEND|os.O_CREATE|os.O_RDWR, 0644)
                 if err != nil </span><span class="cov0" title="0">{
-                        logrus.Error(err)
+                        return
                 }</span>
                 <span class="cov8" title="1">gin.DefaultWriter = f</span>
         }
 
         //validate fields from config
-        <span class="cov8" title="1">if err := validator.Struct(c); err != nil </span><span class="cov0" title="0">{
-                logrus.Fatal(err)
+        <span class="cov8" title="1">if err = validator.Struct(c); err != nil </span><span class="cov8" title="1">{
+                return
         }</span>
 
-        <span class="cov8" title="1">return &amp;c</span>
+        <span class="cov8" title="1">return</span>
 }
 </pre>
 		
@@ -918,33 +919,38 @@ import (
         "crypto/md5"
         "crypto/rand"
         "encoding/hex"
+        "errors"
         "fmt"
         "io"
         "net/http"
 )
 
-func GenerateUUID() (uuid string, err error) <span class="cov0" title="0">{
+func GenerateUUID() (uuid string, err error) <span class="cov8" title="1">{
         b := make([]byte, 16)
         _, err = rand.Read(b)
         if err != nil </span><span class="cov0" title="0">{
                 return
-        }</span> else<span class="cov0" title="0"> {
+        }</span> else<span class="cov8" title="1"> {
                 uuid = fmt.Sprintf("%X-%X-%X-%X-%X", b[0:4], b[4:6], b[6:8], b[8:10], b[10:])
         }</span>
-        <span class="cov0" title="0">return</span>
+        <span class="cov8" title="1">return</span>
 }
 
-func ExtractBody(r *http.Request) (body []byte, err error) <span class="cov0" title="0">{
-        body, err = io.ReadAll(r.Body)
-        if err != nil </span><span class="cov0" title="0">{
+func ExtractBody(r *http.Request) (body []byte, err error) <span class="cov8" title="1">{
+        if r == nil </span><span class="cov8" title="1">{
+                err = errors.New("Extract body : request nil")
                 return
         }</span>
-        <span class="cov0" title="0">r.Body = io.NopCloser(bytes.NewReader(body))
+        <span class="cov8" title="1">body, err = io.ReadAll(r.Body)
+        if err != nil </span><span class="cov8" title="1">{
+                return
+        }</span>
+        <span class="cov8" title="1">r.Body = io.NopCloser(bytes.NewReader(body))
         return</span>
 }
 
 // GetMD5Hash return MD5 from text
-func GetMD5Hash(text string) string <span class="cov0" title="0">{
+func GetMD5Hash(text string) string <span class="cov8" title="1">{
         hasher := md5.New()
         hasher.Write([]byte(text))
         return hex.EncodeToString(hasher.Sum(nil))
