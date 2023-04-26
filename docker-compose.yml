@@ -36,7 +36,7 @@ services:
       test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
       timeout: 5s
       retries: 10
-      interval: 20s #check health every 30 minutes
+      interval: 20s #check health every 20s
     volumes:
       - mariadb-volume:/var/lib/mysql  #data persistence
       - ./dump.sql:/docker-entrypoint-initdb.d/dump.sql #sql script to execute when init

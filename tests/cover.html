@@ -59,9 +59,9 @@
 				
 				<option value="file1">github.com/arckadious/fizzbuzz/config/config.go (89.7%)</option>
 				
-				<option value="file2">github.com/arckadious/fizzbuzz/container/container.go (0.0%)</option>
+				<option value="file2">github.com/arckadious/fizzbuzz/container/container.go (100.0%)</option>
 				
-				<option value="file3">github.com/arckadious/fizzbuzz/database/database.go (0.0%)</option>
+				<option value="file3">github.com/arckadious/fizzbuzz/database/database.go (81.8%)</option>
 				
 				<option value="file4">github.com/arckadious/fizzbuzz/manager/fizz.go (0.0%)</option>
 				
@@ -286,7 +286,7 @@ type Container struct {
 }
 
 // Container constructor
-func New(conf *config.Config, validator *validator.Validate) *Container <span class="cov0" title="0">{
+func New(conf *config.Config, validator *validator.Validate) *Container <span class="cov8" title="1">{
 
         container := Container{
                 Conf:      conf,
@@ -299,7 +299,7 @@ func New(conf *config.Config, validator *validator.Validate) *Container <span cl
 }</span>
 
 // Set application actions
-func (c *Container) setActions() *Container <span class="cov0" title="0">{
+func (c *Container) setActions() *Container <span class="cov8" title="1">{
 
         // Default API Response is always set to HTTP status 200
         resp := response.ApiResponse{
@@ -318,7 +318,7 @@ func (c *Container) setActions() *Container <span class="cov0" title="0">{
         return c
 }</span>
 
-func (c *Container) setRepositories() <span class="cov0" title="0">{
+func (c *Container) setRepositories() <span class="cov8" title="1">{
         c.Repo = repository.NewRepository(database.New(c.Conf))
         c.RepoFizz = repository.NewFizzRepository(c.Repo)
 }</span>
@@ -336,7 +336,7 @@ import (
         "github.com/sirupsen/logrus"
 )
 
-func New(cf *config.Config) *sql.DB <span class="cov0" title="0">{
+func New(cf *config.Config) *sql.DB <span class="cov8" title="1">{
         dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s",
                 cf.Database.Username,
                 cf.Database.Password,
@@ -349,12 +349,12 @@ func New(cf *config.Config) *sql.DB <span class="cov0" title="0">{
                 logrus.Fatal(err)
         }</span>
 
-        <span class="cov0" title="0">err = db.Ping()
+        <span class="cov8" title="1">err = db.Ping()
         if err != nil </span><span class="cov0" title="0">{
                 logrus.Fatal(err)
         }</span>
 
-        <span class="cov0" title="0">db.SetMaxOpenConns(cf.Database.MaxOpenConns)
+        <span class="cov8" title="1">db.SetMaxOpenConns(cf.Database.MaxOpenConns)
         db.SetMaxIdleConns(cf.Database.MaxIdleConns)
         db.SetConnMaxLifetime(cf.Database.MaxConnLifeTime * time.Second)
 
