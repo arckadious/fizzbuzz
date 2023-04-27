@@ -5,7 +5,7 @@ else
 endif
 .PHONY: all clean down build start start-rp start-db start-logs restart stop stop-rp stop-db stop-logs kill rm in install update srv run bash sh tests
 
-DOCKER_COMPOSE_BIN = docker-compose
+DOCKER_COMPOSE_BIN = docker compose
 DOCKER_COMPOSE = $(DOCKER_COMPOSE_BIN)
 
 #Service Names on docker-compose

@@ -15,6 +15,7 @@ ______________
 - [:arrows_clockwise: Requirements](#arrows_clockwise-requirements)
       - [Local Requirements](#local-requirements)
 - [:package: Dependencies](#package-dependencies)
+    - [Indirect Dependencies](#indirect-dependencies)
 - [:vertical_traffic_light: Usages](#vertical_traffic_light-usages)
     - [Remote Uses](#remote-uses)
     - [Start containers](#start-containers)
@@ -46,8 +47,7 @@ ______________
 Golang 1.19+
 
 #####  Local Requirements
-* [docker](https://docs.docker.com/installation/)
-* [docker-compose](https://docs.docker.com/compose/install/)
+* [docker v20.10.8+](https://docs.docker.com/installation/)
 * make
 
 ## :package: Dependencies
@@ -59,7 +59,9 @@ Golang 1.19+
 |MySQL Go driver|github.com/go-sql-driver/mysql|v1.6.0|
 |Logrus|github.com/sirupsen/logrus|v1.9.0|
 |Testify|github.com/stretchr/testify|v1.8.2|
- 
+
+#### Indirect Dependencies
+> See [go.mod](go.mod)
 
 ## :vertical_traffic_light: Usages
 
@@ -132,7 +134,7 @@ Check this config file [/parameters/parameters.json](/parameters/parameters.json
 
 This application use 3 types of logs:
 
- - Error log in standard output and exit the application
+ - Error logs in standard output and exit the application (also available from dozzle.localhost:8080)
  - Applicatives logs stored in audit database
  - Gin framework logs on localhost environment in gin.log file
 
