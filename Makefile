@@ -72,7 +72,7 @@ update:
 	@$(DK_EXEC) bash -c "go get -u && go mod tidy && go mod download && go mod vendor"
 
 srv:
-	@$(DK_EXEC) bash -c "air  |& tee -a /var/log/messages.log"
+	@$(DK_EXEC) bash -c "air  --build.bin './tmp/main -config=/go/config/config.json ${ARGS}'  |& tee -a /var/log/messages.log"
 
 run:
 	@$(DK_EXEC) bash -c "go run main.go -config=/go/config/config.json ${ARGS} |& tee -a /var/log/messages.log"

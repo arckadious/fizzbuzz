@@ -47,7 +47,7 @@ ______________
 Golang 1.19+
 
 #####  Local Requirements
-* [docker v23.0.5+ (Hyper-v recommended)](https://docs.docker.com/installation/)
+* [docker (v23.0.5+ and Hyper-v recommended on Windows OS)](https://docs.docker.com/installation/)
 * make
 
 ## :package: Dependencies
