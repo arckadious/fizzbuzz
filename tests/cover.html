@@ -57,7 +57,7 @@
 				
 				<option value="file0">github.com/arckadious/fizzbuzz/action/fizz/fizz.go (0.0%)</option>
 				
-				<option value="file1">github.com/arckadious/fizzbuzz/config/config.go (89.7%)</option>
+				<option value="file1">github.com/arckadious/fizzbuzz/config/config.go (90.0%)</option>
 				
 				<option value="file2">github.com/arckadious/fizzbuzz/container/container.go (100.0%)</option>
 				
@@ -141,7 +141,6 @@ func (ac *FizzAction) HandleStatistics(w http.ResponseWriter, r *http.Request) <
 import (
         "encoding/json"
         "os"
-        "path/filepath"
         "strings"
         "time"
 
@@ -243,8 +242,9 @@ func New(fileName string, validator validator.Validate) (c *Config, err error) <
         <span class="cov8" title="1">if c.Env != "localhost" </span><span class="cov8" title="1">{
                 gin.SetMode(gin.ReleaseMode)
         }</span> else<span class="cov8" title="1"> {
+                gin.SetMode(gin.DebugMode)
                 var f *os.File
-                f, err = os.OpenFile(filepath.Join(c.rootPath, "gin.log"), os.O_APPEND|os.O_CREATE|os.O_RDWR, 0644)
+                f, err = os.OpenFile("gin.log", os.O_APPEND|os.O_CREATE|os.O_RDWR, 0644)
                 if err != nil </span><span class="cov0" title="0">{
                         return
                 }</span>

@@ -11,7 +11,7 @@ import (
 
 func TestNew(t *testing.T) {
 
-	cf, err := config.New("../parameters/parameters.json", *validator.New())
+	cf, err := config.New("../tests/mock/parametersOK.json", *validator.New())
 	assert.Equal(t, nil, err)
 	container := New(cf, validator.New())
 	assert.NotEqual(t, nil, container)

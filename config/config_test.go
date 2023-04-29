@@ -1,6 +1,7 @@
 package config
 
 import (
+	"os"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -11,7 +12,7 @@ import (
 func TestNew(t *testing.T) {
 
 	//config ok
-	_, err := New("../parameters/parameters.json", *validator.New())
+	_, err := New("../tests/mock/parametersOK.json", *validator.New())
 	assert.Equal(t, nil, err)
 
 	//config file not exist
@@ -23,10 +24,12 @@ func TestNew(t *testing.T) {
 	assert.NotEqual(t, nil, err)
 	assert.Equal(t, "invalid character 'p' looking for beginning of value", err.Error())
 
-	//Gin release mode
-	_, err = New("../tests/mock/parameters-ginrelease.json", *validator.New())
+	//Gin debug mode
+	_, err = New("../tests/mock/parameters-gindebug.json", *validator.New())
 	assert.Equal(t, nil, err)
-	assert.Equal(t, "release", gin.Mode())
+	assert.Equal(t, "debug", gin.Mode())
+	err = os.Remove("gin.log")
+	assert.Equal(t, nil, err)
 
 	//config validation failed
 	_, err = New("../tests/mock/parameters-wrongvalue.json", *validator.New())

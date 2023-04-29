@@ -104,6 +104,7 @@ func New(fileName string, validator validator.Validate) (c *Config, err error) {
 	if c.Env != "localhost" {
 		gin.SetMode(gin.ReleaseMode)
 	} else {
+		gin.SetMode(gin.DebugMode)
 		var f *os.File
 		f, err = os.OpenFile("gin.log", os.O_APPEND|os.O_CREATE|os.O_RDWR, 0644)
 		if err != nil {
