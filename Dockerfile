@@ -24,8 +24,6 @@ RUN touch /var/log/messages.log
 
 # RUN curl -sSfL https://raw.githubusercontent.com/cosmtrek/air/${AIR_VERSION}/install.sh | sh -s -- -b ${GOPATH}
 RUN go install github.com/cosmtrek/air@${AIR_VERSION}
-# RUN mv ${GOROOT}/bin/air ~/.air
-# RUN alias air='$(go env GOPATH)/bin/air'
 
 RUN apt-get clean -y
 
