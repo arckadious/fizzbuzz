@@ -47,7 +47,7 @@ ______________
 Golang 1.19+
 
 #####  Local Requirements
-* [docker (v23.0.5+ and Hyper-v recommended on Windows OS)](https://docs.docker.com/installation/)
+* [docker](https://docs.docker.com/installation/)
 * make
 
 ## :package: Dependencies
@@ -99,6 +99,7 @@ $ make install
 ````:shell 
 $ make srv
   ````
+> If you have issues with live reloading, try poll = true instead of false in [.air.toml](.air.toml) config file, or update docker to last version. 
 
 #### Run API Server (without air)
 ````:shell 
