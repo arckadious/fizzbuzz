@@ -6,7 +6,7 @@
         "adapter": "mysql",
         "host": "mariadb",
         "username": "root",
-        "password": "admin",
+        "password": "root",
         "port": "3306",
         "name": "DB",
         "charset": "UTF8",
