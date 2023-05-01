@@ -1,3 +1,4 @@
+// This package connect the API to database
 package database
 
 import (
@@ -9,8 +10,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNew(t *testing.T) {
+func TestConnect(t *testing.T) {
 	cf, err := config.New("../tests/mock/parametersOK.json", *validator.New())
 	assert.Equal(t, nil, err)
-	New(cf)
+	Connect(cf)
 }

@@ -1,3 +1,4 @@
+// This package connect the API to database
 package database
 
 import (
@@ -10,7 +11,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func New(cf *config.Config) *sql.DB {
+// Connect connect the API to database
+func Connect(cf *config.Config) *sql.DB {
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s",
 		cf.Database.Username,
 		cf.Database.Password,

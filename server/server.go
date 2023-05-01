@@ -11,7 +11,6 @@ import (
 	"strconv"
 	"time"
 
-	cst "github.com/arckadious/fizzbuzz/constant"
 	"github.com/arckadious/fizzbuzz/container"
 	"github.com/arckadious/fizzbuzz/model"
 	"github.com/arckadious/fizzbuzz/response"
@@ -26,6 +25,12 @@ const (
 	// Timeout delay and graceful shutdown deadline
 	Timeout     = time.Second * 180
 	IdleTimeout = 60
+
+	FizzBaseURI       = "/fizzbuzz"
+	FizzStatisticsURI = "/statistics"
+
+	URLPrefixVersion = "/v1"
+	Scheme           = "http"
 )
 
 type bodyLogWriter struct {
@@ -123,13 +128,13 @@ func (s *Server) Handler() *gin.Engine {
 	})
 
 	//api subrouter v1
-	v1 := loggerRouter.Group(cst.URLPrefixVersion)
+	v1 := loggerRouter.Group(URLPrefixVersion)
 
 	//fizzbuzz routes
-	v1.POST(cst.FizzBaseURI, func(c *gin.Context) {
+	v1.POST(FizzBaseURI, func(c *gin.Context) {
 		s.container.FizzAction.HandleFizz(c.Writer, c.Request)
 	})
-	v1.GET(cst.FizzStatisticsURI, func(c *gin.Context) {
+	v1.GET(FizzStatisticsURI, func(c *gin.Context) {
 		s.container.FizzAction.HandleStatistics(c.Writer, c.Request)
 	})
 
@@ -191,11 +196,11 @@ func (s *Server) Logger() gin.HandlerFunc {
 		//Create a checksum for the current request, only if it's the main endpoint (/fizzbuzz) and data is valid.
 		var data model.Input
 		checksum := ""
-		if c.Request.RequestURI == cst.URLPrefixVersion+cst.FizzBaseURI && json.Unmarshal(body, &data) == nil && s.container.Validator.Struct(data) == nil {
+		if c.Request.RequestURI == URLPrefixVersion+FizzBaseURI && json.Unmarshal(body, &data) == nil && s.container.Validator.Struct(data) == nil {
 			checksum = util.GetMD5Hash(data.String())
 		}
 
-		go s.container.Repo.LogToDB("request", string(body), cst.Scheme+"://"+path.Join(c.Request.Host, c.Request.RequestURI), corID, checksum, "")
+		go s.container.Repo.LogToDB("request", string(body), Scheme+"://"+path.Join(c.Request.Host, c.Request.RequestURI), corID, checksum, "")
 
 		// Intercept Writer in order to get response body
 		blw := &bodyLogWriter{body: bytes.NewBufferString(""), ResponseWriter: c.Writer}

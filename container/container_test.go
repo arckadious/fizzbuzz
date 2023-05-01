@@ -1,3 +1,4 @@
+// This package init all classes
 package container
 
 import (

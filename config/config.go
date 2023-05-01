@@ -1,3 +1,4 @@
+// This package load API configuration
 package config
 
 import (
@@ -31,7 +32,7 @@ type Config struct {
 	} `json:"database"`
 }
 
-// lower case on string fields level and Env, to avoid case sensitive
+// UnmarshalJSON : lower case on string fields level and Env, to avoid case sensitive
 func (c *Config) UnmarshalJSON(data []byte) error {
 
 	type TmpConfig Config //avoid infinite loop stack exceed.
@@ -51,21 +52,24 @@ func (c *Config) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// GetRootPath return workspace path
 func (c *Config) GetRootPath() string {
 
 	return c.rootPath
 }
 
+// InitRootPath init workspace path
 func (c *Config) InitRootPath(val string) {
 	if c.rootPath == "" {
 		c.rootPath = val
 	}
 }
 
-// New create Config
+// New constructor Config
 func New(fileName string, validator validator.Validate) (c *Config, err error) {
 
 	c = &Config{}
+
 	//define logrus text formatter
 	logrus.SetFormatter(&logrus.TextFormatter{
 		ForceColors:     true,

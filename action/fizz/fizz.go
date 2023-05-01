@@ -1,3 +1,4 @@
+// This package extract and validate data
 package fizz
 
 import (
@@ -13,10 +14,12 @@ type FizzAction struct {
 	mng *manager.Fizz
 }
 
+// NewFizzAction constructor FizzAction
 func NewFizzAction(mng *manager.Fizz) *FizzAction {
 	return &FizzAction{mng}
 }
 
+// HandleFizz extract and validate data
 func (ac *FizzAction) HandleFizz(w http.ResponseWriter, r *http.Request) {
 
 	res := ac.mng.GetApiResponse() //generic response, unchanged, send 200 OK with json body response
@@ -40,6 +43,7 @@ func (ac *FizzAction) HandleFizz(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// HandleStatistics send back statistics about what the most used request has been
 func (ac *FizzAction) HandleStatistics(w http.ResponseWriter, r *http.Request) {
 	ac.mng.HandleStatistics(w)
 }

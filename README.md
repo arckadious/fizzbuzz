@@ -7,6 +7,7 @@ The original fizzbuzz consists in writing all numbers from 1 to 100, and just re
 Fizzbuzz is a web server. It has two REST API endpoints, one will return the list of numbers, and another one will show what the most frequent request has been.
 
 ______________
+
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
@@ -68,16 +69,18 @@ Golang 1.19+
 
 The binary is built during deployment
 
-- Possible(s) option(s) : `-config=[PATH]` => by default if not specified, config path will be ./parameters/parameters.json
+- Possible(s) option(s) : `-config=[PATH]`
+
+>By default if not specified, config path will be ./parameters/parameters.json
 
 - Example :
 
 ````shell:
-   # run api
-   $ go run main.go
+# run api
+go run main.go
 
-   # run api with specific config
-   $ go run main.go -config=./parameters/parameters.json
+# run api with specific config
+go run main.go -config=./parameters/parameters.json
 ````
 
 ### Start containers
@@ -122,17 +125,15 @@ make run
 make tests
 ````
 
-_____________
-
 >For more commands, see [Makefile](Makefile)
 
 ## :whale: Environment
 
 |ENVIRONMENT|URL RANCHER|
 |:--|:--|
-|DEV|<https://fizbuzz-dev.example.com|>
-|RECETTE|<https://fizbuzz-rct.example.com|>
-|PROD|<https://fizbuzz.example.com|>
+|DEV|<fizbuzz-dev.example.com>|
+|RECETTE|<https://fizbuzz-rct.example.com>|
+|PROD|<https://fizbuzz.example.com>|
 
 ## :mag: Configuration
 
@@ -273,8 +274,6 @@ fizzbuzz
     │
     └───validator
 ````
-
-___________
 
 ## :briefcase: Author
 

@@ -1,3 +1,4 @@
+// This package load API configuration
 package config
 
 import (

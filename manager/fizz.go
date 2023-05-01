@@ -1,3 +1,4 @@
+// This package process data from action class handlers
 package manager
 
 import (
@@ -11,13 +12,12 @@ import (
 	"github.com/arckadious/fizzbuzz/response"
 )
 
-// Manager fizz
 type Fizz struct {
 	*Manager //Fizz class has attributes and methods from manager parent class
 	repoFizz *repository.RepositoryFizz
 }
 
-// NewFizz Constructor
+// NewFizz constructor Fizz
 func NewFizz(m *Manager, repo *repository.RepositoryFizz) *Fizz {
 	return &Fizz{
 		Manager:  m,
@@ -73,6 +73,5 @@ func (m *Fizz) HandleStatistics(w http.ResponseWriter) {
 		return
 	}
 
-	//TO DO
 	res.SetData(model.Output{Hits: hits, Request: msgStruct}).WriteJSONResponse(w)
 }

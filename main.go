@@ -1,3 +1,4 @@
+// main package : read flags, load classes instances and run server
 package main
 
 import (
@@ -48,7 +49,7 @@ func main() {
 		container.New(
 			cf,
 			validator,
-			database.New(cf),
+			database.Connect(cf),
 		),
 	).Run()
 }

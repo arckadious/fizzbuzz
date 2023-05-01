@@ -1,3 +1,4 @@
+// This package init all classes
 package container
 
 import (
@@ -25,7 +26,7 @@ type Container struct {
 	RepoFizz   *repository.RepositoryFizz
 }
 
-// Container constructor
+// New constructor Container
 func New(conf *config.Config, validator *validator.Validate, db *sql.DB) *Container {
 
 	container := Container{
@@ -39,7 +40,6 @@ func New(conf *config.Config, validator *validator.Validate, db *sql.DB) *Contai
 	return &container
 }
 
-// Set application actions
 func (c *Container) setActions() *Container {
 
 	// Default API Response is always set to HTTP status 200
