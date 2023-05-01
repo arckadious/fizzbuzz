@@ -2,8 +2,6 @@
 
  [![Codacy Badge](https://app.codacy.com/project/badge/Grade/d097d0142e6043a3936879cd0433a696)](https://app.codacy.com/gh/arckadious/fizzbuzz/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)  [![Go Report Card](https://goreportcard.com/badge/github.com/arckadious/fizzbuzz?refresh=1)](https://goreportcard.com/report/github.com/arckadious/fizzbuzz)  [![codecov](https://codecov.io/gh/arckadious/fizzbuzz/branch/master/graph/badge.svg)](https://codecov.io/gh/arckadious/fizzbuzz)  [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/arckadious/fizbuzz/LICENSE)  [![Go](https://img.shields.io/badge/Made%20with-Go-1f425f.svg)](https://go.dev/)
 
-
-
 The original fizzbuzz consists in writing all numbers from 1 to 100, and just replacing all multiples of 3 by "fizz", all multiples of 5 by "buzz", and all multiples of 15 by "fizzbuzz".
 
 Fizzbuzz is a web server. It has two REST API endpoints, one will return the list of numbers, and another one will show what the most frequent request has been.
@@ -11,7 +9,6 @@ Fizzbuzz is a web server. It has two REST API endpoints, one will return the lis
 ______________
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-
 
 - [:arrows_clockwise: Requirements](#arrows_clockwise-requirements)
   - [Local Requirements](#local-requirements)
@@ -42,14 +39,14 @@ ______________
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 <!-- MSYS_NO_PATHCONV=1 docker run --rm -v "$(pwd)":/app peterdavehello/npm-doctoc doctoc /app/README.md -->
 
-
 ## :arrows_clockwise: Requirements
 
 Golang 1.19+
 
 ### Local Requirements
-* [docker](https://docs.docker.com/installation/)
-* make
+
+- [docker](https://docs.docker.com/installation/)
+- make
 
 ## :package: Dependencies
 
@@ -62,6 +59,7 @@ Golang 1.19+
 |Testify|github.com/stretchr/testify|v1.8.2|
 
 ### Indirect Dependencies
+
 > See [go.mod](go.mod)
 
 ## :vertical_traffic_light: Usages
@@ -70,47 +68,60 @@ Golang 1.19+
 
 The binary is built during deployment
 
- - Possible(s) option(s) :
-	  `-config=[PATH]`     => by default if not specified, config path will be ./parameters/parameters.json
+- Possible(s) option(s) : `-config=[PATH]` => by default if not specified, config path will be ./parameters/parameters.json
 
+- Example :
 
- - Example :
-````shell: 
+````shell:
    # run api
    $ go run main.go
 
    # run api with specific config
    $ go run main.go -config=./parameters/parameters.json
 ````
+
 ### Start containers
-````:shell 
-$ make
-  ````
+
+````:shell
+make
+````
 
 ### Local Installation
- ````:shell 
-$ git clone https://github.com/arckadious/fizzbuzz.git
-$ cd fizzbuzz
-$ make install
+
+ ````:shell
+git clone https://github.com/arckadious/fizzbuzz.git
+
+cd fizzbuzz
+
+make install
 ````
+
 > 'make install' : You will not have to download dependencies again while running 'make run' or 'make srv'.
+
 ### Run API Server (with air)
+
 > [What is air ?](https://github.com/cosmtrek/air)
-````:shell 
-$ make srv
-  ````
-> If you have issues with live reloading, try poll = true instead of false in [.air.toml](.air.toml) config file, or update docker to last version. 
+
+````:shell
+make srv
+````
+
+> If you have issues with live reloading, try poll = true instead of false in [.air.toml](.air.toml) config file, or update docker to last version.
 
 ### Run API Server (without air)
-````:shell 
-$ make run
-  ````
+
+````:shell
+make run
+````
 
 ### Run Tests
+
 > MariaDB database need to be initialized and available ('make tests' use MySQL database from [api config file](./parameters/parameters.json)).
-````:shell 
-$ make tests
+
+````:shell
+make tests
 ````
+
 _____________
 
 >For more commands, see [Makefile](Makefile)
@@ -119,9 +130,9 @@ _____________
 
 |ENVIRONMENT|URL RANCHER|
 |:--|:--|
-|DEV|https://fizbuzz-dev.example.com|
-|RECETTE|https://fizbuzz-rct.example.com|
-|PROD|https://fizbuzz.example.com|
+|DEV|<https://fizbuzz-dev.example.com|>
+|RECETTE|<https://fizbuzz-rct.example.com|>
+|PROD|<https://fizbuzz.example.com|>
 
 ## :mag: Configuration
 
@@ -137,13 +148,14 @@ Check this config file [/parameters/parameters.json](/parameters/parameters.json
 
 This application use 3 types of logs:
 
- - Error logs in standard output and exit the application (also available from dozzle.localhost:8080)
- - Applicatives logs stored in audit database
- - Gin framework logs on localhost environment in gin.log file
+- Error logs in standard output and exit the application (also available from dozzle.localhost:8080)
+- Applicatives logs stored in audit database
+- Gin framework logs on localhost environment in gin.log file
 
 ### Applicative logs
 
-Fizzbuzz API uses a logger middleware, which send requests and responses to a MySQL Database. 
+Fizzbuzz API uses a logger middleware, which send requests and responses to a MySQL Database.
+
 >'/swagger' api endpoint is excluded from applicative logs.
 
 Using local database, you can see these logs at phpmyadmin.localhost:8080. Requests and responses are separated in two tables, and bound by a "COR_ID".
@@ -164,6 +176,7 @@ Gin Framework log each request sent to fizzbuzz API.
 > gin.log logs are available only for localhost environment purposes.
 
 - Example :
+
 ````log
 [GIN-debug] GET    /swagger/*filepath        --> github.com/gin-gonic/gin.(*RouterGroup).createStaticHandler.func1 (3 handlers)
 [GIN-debug] HEAD   /swagger/*filepath        --> github.com/gin-gonic/gin.(*RouterGroup).createStaticHandler.func1 (3 handlers)
@@ -177,56 +190,61 @@ Gin Framework log each request sent to fizzbuzz API.
 ## :link: Tools
 
 Local tools are available to make yourself comfortable :
+
 - Local MySQL database + phpmyadmin web interface.
 - Dozzle (log and memory monitoring for all containers).
 - Swagger Web interface.
 
-| ENV |URL| 
+| ENV |URL|
 |---|--|
-|Swagger| http://swagger.localhost:8080
-|Phpmyadmin| http://phpmyadmin.localhost:8080
-|Dozzle (logs)| http://dozzle.localhost:8080
-|API Go| http://api.localhost:8080
+|Swagger| <http://swagger.localhost:8080>
+|Phpmyadmin| <http://phpmyadmin.localhost:8080>
+|Dozzle (logs)| <http://dozzle.localhost:8080>
+|API Go| <http://api.localhost:8080>
 
 > For more details, see [nginx.conf](nginx.conf) and [Docker-compose.yml](docker-compose.yml)
 
 ## :trident: API Endpoints
 
-
 ### Main endpoint
--  /v1/fizzbuzz
+
+- /v1/fizzbuzz
 
 > Returns a list of strings with numbers from 1 to limit, where: all multiples specified are replaced by text.
 
-http://api.localhost:8080/v1/fizzbuzz
+<http://api.localhost:8080/v1/fizzbuzz>
 
 ### Most request used
--  /v1/statistics
+
+- /v1/statistics
 
 > Return the parameters corresponding to the most used request, as well as the number of hits for this request.
 
-http://api.localhost:8080/v1/statistics
+<http://api.localhost:8080/v1/statistics>
 
 ### Doc OpenAPI(swagger)
+
 - /swagger
 
 > Swagger Documentation available from the api. Also available from swagger.localhost:8080.
 
-http://api.localhost:8080/swagger
+<http://api.localhost:8080/swagger>
 
 ### :green_heart: Health check
+
 #### Ping
--  /ping
+
+- /ping
 
 > Ping to check if service is online
 
-http://api.localhost:8080/ping
-
+<http://api.localhost:8080/ping>
 
 ## :file_folder: Workspace
+
 <!--generated on Windows with tree /F -->
 
-````
+````schema
 fizzbuzz
     ├───.github
     │   └───workflows   >>> github workflows, for codacy and codecov
@@ -255,8 +273,9 @@ fizzbuzz
     │
     └───validator
 ````
+
 ___________
 
 ## :briefcase: Author
 
-* [Pierre PERRIER-RIDET](https://fr.linkedin.com/in/pierre-perrier-ridet-3561b9139)
+- [Pierre PERRIER-RIDET](https://fr.linkedin.com/in/pierre-perrier-ridet-3561b9139)
