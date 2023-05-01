@@ -1,8 +1,9 @@
 package container
 
 import (
+	"database/sql"
+
 	fizzaction "github.com/arckadious/fizzbuzz/action/fizz"
-	"github.com/arckadious/fizzbuzz/database"
 	"github.com/arckadious/fizzbuzz/repository"
 
 	"net/http"
@@ -19,19 +20,20 @@ type Container struct {
 	Validator *validator.Validate
 
 	FizzAction *fizzaction.FizzAction
-
-	Repo     *repository.Repository
-	RepoFizz *repository.RepositoryFizz
+	db         *sql.DB
+	Repo       *repository.Repository
+	RepoFizz   *repository.RepositoryFizz
 }
 
 // Container constructor
-func New(conf *config.Config, validator *validator.Validate) *Container {
+func New(conf *config.Config, validator *validator.Validate, db *sql.DB) *Container {
 
 	container := Container{
 		Conf:      conf,
 		Validator: validator,
+		db:        db,
 	}
-	container.setRepositories()
+	container.setRepositories(db)
 	container.setActions()
 
 	return &container
@@ -57,7 +59,7 @@ func (c *Container) setActions() *Container {
 	return c
 }
 
-func (c *Container) setRepositories() {
-	c.Repo = repository.NewRepository(database.New(c.Conf))
+func (c *Container) setRepositories(db *sql.DB) {
+	c.Repo = repository.NewRepository(db)
 	c.RepoFizz = repository.NewFizzRepository(c.Repo)
 }

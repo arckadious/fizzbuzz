@@ -8,6 +8,7 @@ import (
 
 	"github.com/arckadious/fizzbuzz/config"
 	"github.com/arckadious/fizzbuzz/container"
+	"github.com/arckadious/fizzbuzz/database"
 	"github.com/arckadious/fizzbuzz/server"
 	"github.com/arckadious/fizzbuzz/validator"
 	"github.com/sirupsen/logrus"
@@ -47,6 +48,7 @@ func main() {
 		container.New(
 			cf,
 			validator,
+			database.New(cf),
 		),
 	).Run()
 }
