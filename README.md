@@ -91,9 +91,8 @@ $ make
 $ git clone https://github.com/arckadious/fizzbuzz.git
 $ cd fizzbuzz
 $ make install
-  ````
-
-
+````
+> You will not have to download dependencies again while running 'make run' or 'make srv'.
 #### Run API Server (with air)
 > [What is air ?](https://github.com/cosmtrek/air)
 ````:shell 
@@ -107,9 +106,10 @@ $ make run
   ````
 
 #### Run Tests
+> MariaDB database need to be initialized and available ('make tests' use MySQL database from [api config file](./parameters/parameters.json)).
 ````:shell 
 $ make tests
-  ````
+````
 
 >For more commands, see [Makefile](Makefile)
 

@@ -34,5 +34,5 @@ WORKDIR /fizzbuzz-api
 # keep container Up to avoid terminating
 # ENTRYPOINT [ "tail", "-f", "/dev/null" ] 
 
-# Register logs from 'make run' and 'make srv' commands for dozzle.
+# Register logs from 'make run' and 'make srv' commands to dozzle.
 ENTRYPOINT [ "tail", "-f", "/var/log/messages.log" ] 
