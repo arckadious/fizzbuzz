@@ -6,15 +6,10 @@ import (
 	"io"
 	"net/http"
 	"testing"
+	"testing/iotest"
 
 	"github.com/stretchr/testify/assert"
 )
-
-type errReader int
-
-func (errReader) Read(p []byte) (n int, err error) {
-	return 0, errors.New("test error")
-}
 
 func TestUtil(t *testing.T) {
 
@@ -34,7 +29,7 @@ func TestUtil(t *testing.T) {
 	assert.Equal(t, nil, err)
 	assert.Equal(t, "", string(body))
 
-	r, _ = http.NewRequest("GET", "http://google.fr", errReader(0)) //body error
+	r, _ = http.NewRequest("GET", "http://google.fr", iotest.ErrReader(errors.New("test"))) //body error
 	body, err = ExtractBody(r)
 	assert.NotEqual(t, nil, err)
 	assert.Equal(t, "", string(body))

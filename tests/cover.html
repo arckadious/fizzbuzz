@@ -67,15 +67,17 @@
 				
 				<option value="file5">github.com/arckadious/fizzbuzz/manager/manager.go (0.0%)</option>
 				
-				<option value="file6">github.com/arckadious/fizzbuzz/repository/fizz.go (0.0%)</option>
+				<option value="file6">github.com/arckadious/fizzbuzz/model/model.go (100.0%)</option>
 				
-				<option value="file7">github.com/arckadious/fizzbuzz/repository/repository.go (0.0%)</option>
+				<option value="file7">github.com/arckadious/fizzbuzz/repository/fizz.go (0.0%)</option>
 				
-				<option value="file8">github.com/arckadious/fizzbuzz/response/apiresponse.go (0.0%)</option>
+				<option value="file8">github.com/arckadious/fizzbuzz/repository/repository.go (0.0%)</option>
 				
-				<option value="file9">github.com/arckadious/fizzbuzz/server/server.go (0.0%)</option>
+				<option value="file9">github.com/arckadious/fizzbuzz/response/apiresponse.go (0.0%)</option>
 				
-				<option value="file10">github.com/arckadious/fizzbuzz/util/util.go (94.1%)</option>
+				<option value="file10">github.com/arckadious/fizzbuzz/server/server.go (0.0%)</option>
+				
+				<option value="file11">github.com/arckadious/fizzbuzz/util/util.go (94.1%)</option>
 				
 				</select>
 			</div>
@@ -481,7 +483,45 @@ func (m *Manager) GetConfig() config.Config <span class="cov0" title="0">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file6" style="display: none">package repository
+		<pre class="file" id="file6" style="display: none">package model
+
+import (
+        "strconv"
+        "strings"
+
+        "github.com/sirupsen/logrus"
+)
+
+type Input struct {
+        Limit     int        `validate:"gt=0,lte=1000000"`
+        Multiples []Multiple `validate:"gte=0,lte=2,dive"`
+}
+
+type Multiple struct {
+        IntX int    `validate:"gt=0"`
+        StrX string `validate:"required"`
+}
+type Output struct {
+        Request Input `json:"request"`
+        Hits    int   `json:"hits"`
+}
+
+func (input *Input) String() (val string) <span class="cov8" title="1">{
+        if input == nil </span><span class="cov8" title="1">{
+                logrus.Error("input.String() : struct nil")
+                return
+        }</span>
+        <span class="cov8" title="1">val += "{["
+        for _, elem := range input.Multiples </span><span class="cov8" title="1">{
+                val += "{" + elem.StrX + " " + strconv.Itoa(elem.IntX) + "} "
+        }</span>
+
+        <span class="cov8" title="1">return strings.TrimRight(val, " ") + "] " + strconv.Itoa(input.Limit) + "}"</span>
+
+}
+</pre>
+		
+		<pre class="file" id="file7" style="display: none">package repository
 
 import (
         "database/sql"
@@ -508,7 +548,7 @@ func (rf *RepositoryFizz) GetMostRequestUsed() (msg string, hits int, noRows boo
 }
 </pre>
 		
-		<pre class="file" id="file7" style="display: none">package repository
+		<pre class="file" id="file8" style="display: none">package repository
 
 import (
         "database/sql"
@@ -564,7 +604,7 @@ func (r *Repository) LogToDB(logType, msg, url, corID, checksum, status string) 
 }
 </pre>
 		
-		<pre class="file" id="file8" style="display: none">package response
+		<pre class="file" id="file9" style="display: none">package response
 
 import (
         "encoding/json"
@@ -701,13 +741,12 @@ func (res *ApiResponse) WriteJsonResponse(w http.ResponseWriter) <span class="co
 }</span>
 </pre>
 		
-		<pre class="file" id="file9" style="display: none">package server
+		<pre class="file" id="file10" style="display: none">package server
 
 import (
         "bytes"
         "context"
         "encoding/json"
-        "fmt"
         "net/http"
         "os"
         "os/signal"
@@ -896,7 +935,7 @@ func (s *Server) Logger() gin.HandlerFunc <span class="cov0" title="0">{
                 <span class="cov0" title="0">var data model.Input
                 checksum := ""
                 if c.Request.RequestURI == cst.URLPrefixVersion+cst.FizzBaseURI &amp;&amp; json.Unmarshal(body, &amp;data) == nil &amp;&amp; s.container.Validator.Struct(data) == nil </span><span class="cov0" title="0">{
-                        checksum = util.GetMD5Hash(fmt.Sprint(data))
+                        checksum = util.GetMD5Hash(data.String())
                 }</span>
 
                 <span class="cov0" title="0">go s.container.Repo.LogToDB("request", string(body), cst.Scheme+"://"+path.Join(c.Request.Host, c.Request.RequestURI), corID, checksum, "")
@@ -913,7 +952,7 @@ func (s *Server) Logger() gin.HandlerFunc <span class="cov0" title="0">{
 }
 </pre>
 		
-		<pre class="file" id="file10" style="display: none">package util
+		<pre class="file" id="file11" style="display: none">package util
 
 import (
         "bytes"

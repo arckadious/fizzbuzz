@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -193,7 +192,7 @@ func (s *Server) Logger() gin.HandlerFunc {
 		var data model.Input
 		checksum := ""
 		if c.Request.RequestURI == cst.URLPrefixVersion+cst.FizzBaseURI && json.Unmarshal(body, &data) == nil && s.container.Validator.Struct(data) == nil {
-			checksum = util.GetMD5Hash(fmt.Sprint(data))
+			checksum = util.GetMD5Hash(data.String())
 		}
 
 		go s.container.Repo.LogToDB("request", string(body), cst.Scheme+"://"+path.Join(c.Request.Host, c.Request.RequestURI), corID, checksum, "")
