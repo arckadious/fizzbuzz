@@ -8,23 +8,23 @@ jobs:
       TZ: Europe/Paris    #timezone for db datetime
       DB_DATABASE: DB
       DB_USER: root
-      DB_PASSWORD: root
+      DB_PASSWORD: root #MySQL server on github action default password is always root.
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v2 #checkout code
         with:
           fetch-depth: 2
-      - name: Set up MySQL
+      - name: Set up MySQL #prepare database for testing purposes
         run: |
           sudo /etc/init.d/mysql start
           sudo mysql -u${{ env.DB_PASSWORD }} -e "CREATE DATABASE ${{ env.DB_DATABASE }};" -p${{ env.DB_PASSWORD }}
           cat dump.sql | sudo mysql -u${{ env.DB_PASSWORD }} -p${{ env.DB_PASSWORD }}
-      - uses: actions/setup-go@v2
+      - uses: actions/setup-go@v2 #install golang
         with:
           go-version: '1.19.8'
-      - name: Add hosts to /etc/hosts
+      - name: Add hosts to /etc/hosts #use the same hostname as the local database with docker-compose, to avoid two api configurations
         run: sudo echo "127.0.0.1 mariadb" | sudo tee -a /etc/hosts
       - name: Run coverage
-        run: go test ./... -race -coverprofile=coverage.out -covermode=atomic
-      - name: Upload coverage to Codecov
+        run: go test ./... -race -coverprofile=coverage.out -covermode=atomic 
+      - name: Upload coverage to Codecov # Send tests results to codecov platform
         uses: codecov/codecov-action@v3

@@ -3,6 +3,8 @@ package response
 import (
 	"encoding/json"
 	"net/http"
+
+	"github.com/arckadious/fizzbuzz/vendor/github.com/sirupsen/logrus"
 )
 
 const (
@@ -86,25 +88,25 @@ func (res *ApiResponse) SetCustomErrorResponse(httpCode int, status string, mess
 	return res
 }
 
-// Set automatique bad request response
+// Set bad request response
 func (res *ApiResponse) SetBadRequestResponse(messages []ApiError) *ApiResponse {
 	res.SetCustomErrorResponse(http.StatusBadRequest, StatusError, messages)
 	return res
 }
 
-// Set automatique forbidden response
+// Set forbidden response
 func (res *ApiResponse) SetForbiddenResponse(messages []ApiError) *ApiResponse {
 	res.SetCustomErrorResponse(http.StatusForbidden, StatusError, messages)
 	return res
 }
 
-// Set automatique bad request response
+// Set not found response
 func (res *ApiResponse) SetNotFoundResponse(messages []ApiError) *ApiResponse {
 	res.SetCustomErrorResponse(http.StatusNotFound, StatusError, messages)
 	return res
 }
 
-// Set automatique bad request response
+// Set internal server error response
 func (res *ApiResponse) SetInternalServerErrorResponse(messages []ApiError) *ApiResponse {
 	res.SetCustomErrorResponse(http.StatusInternalServerError, StatusError, messages)
 	return res
@@ -130,6 +132,9 @@ func (res *ApiResponse) GetErrorMessageSlice(code string, field string, message 
 func (res *ApiResponse) WriteJSONResponse(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(res.StatusCode)
-	resp, _ := json.Marshal(res)
+	resp, err := json.Marshal(res)
+	if err != nil {
+		logrus.Error(err)
+	}
 	w.Write(resp)
 }

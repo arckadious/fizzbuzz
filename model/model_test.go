@@ -1,3 +1,4 @@
+// This package contains golang main models for API endpoints (input/output)
 package model
 
 import (

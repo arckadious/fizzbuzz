@@ -116,7 +116,7 @@ func (s *Server) Handler() *gin.Engine {
 		s.methodNotAllowedHandler(c.Writer, c.Request)
 	}))
 
-	//documentation de l'api (exclu du loggerMiddleware)
+	//api doc (excluded from loggerMiddleware)
 	router.Static("/swagger", "./swaggerui")
 
 	loggerRouter := router.Group("")

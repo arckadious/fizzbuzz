@@ -1,3 +1,4 @@
+// This package process data from action class handlers
 package manager
 
 import (
@@ -16,21 +17,22 @@ type Manager struct {
 	repo        *repository.Repository
 }
 
-// Constructor NewManager
+// New constructor Manager
 func New(cf *config.Config, apiResponse response.ApiResponse, v *validator.Validate, repo *repository.Repository) *Manager {
 	return &Manager{cf, apiResponse, v, repo}
 }
 
-// Returns the ApiResponse
+// GetApiResponse returns the Api Response
 func (m *Manager) GetApiResponse() response.ApiResponse {
 	return m.apiResponse
 }
 
+// GetValidator returns the validator
 func (m *Manager) GetValidator() *validator.Validate {
 	return m.validator
 }
 
-// Returns a copy of the config
+// GetConfig returns a copy of the config
 func (m *Manager) GetConfig() config.Config {
 	return *m.cf
 }

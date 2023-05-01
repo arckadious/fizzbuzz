@@ -29,7 +29,7 @@ services:
     image : mariadb:latest
     hostname: mariadb
     environment: 
-      MYSQL_ROOT_PASSWORD: root #password root, to access database (it shouldn't be here). 
+      MYSQL_ROOT_PASSWORD: root #password root, to access mysql database.
       MYSQL_DATABASE: DB
       TZ: Europe/Paris    #timezone for db datetime
     healthcheck:        #cmd to check for the database to be ready in accepting requests.
@@ -92,7 +92,7 @@ services:
       - GOARCH=amd64
 
   # -----------------------------------------------------------------------------------------------------------------------------------------------------
-  #  Pour tester l'image de déploiement de l'api utilisée dans le gitlabci. - penser à faire un docker-compose build pour rebuild avec le Dockerfile.prod
+  #  Test Dockerfile.prod image for GitlabCI - /§\ Don't forget to rebuild your image before, and after if you switch back to 'Dockerfile' image
   # -----------------------------------------------------------------------------------------------------------------------------------------------------
   # api:
   #     build:

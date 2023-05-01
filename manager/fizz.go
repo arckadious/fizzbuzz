@@ -25,6 +25,7 @@ func NewFizz(m *Manager, repo *repository.RepositoryFizz) *Fizz {
 	}
 }
 
+// HandleFizz writes to 'w' a list of strings with numbers from 1 to limit, where: all multiples specified are replaced by text
 func (m *Fizz) HandleFizz(w http.ResponseWriter, input model.Input) {
 
 	res := m.GetApiResponse()
@@ -52,13 +53,14 @@ func (m *Fizz) HandleFizz(w http.ResponseWriter, input model.Input) {
 	res.SetData(output).WriteJSONResponse(w)
 }
 
+// HandleStatistics write to 'w' the parameters corresponding to the most used request, as well as the number of hits for this request.
 func (m *Fizz) HandleStatistics(w http.ResponseWriter) {
 
 	res := m.GetApiResponse()
 
 	msg, hits, noRows, err := m.repoFizz.GetMostRequestUsed()
 	if err != nil {
-		if noRows {
+		if noRows { // Database does not contain rows with checksum not empty
 			res.SetStatusCode(http.StatusPartialContent).WriteJSONResponse(w)
 			return
 		}
