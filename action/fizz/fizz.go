@@ -26,13 +26,13 @@ func (ac *FizzAction) HandleFizz(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	err := json.NewDecoder(r.Body).Decode(&input)
 	if err != nil {
-		res.SetBadRequestResponse([]response.ApiError{{Code: response.ErrorInvalidData, Message: "Data JSON input bad format."}}).WriteJsonResponse(w)
+		res.SetBadRequestResponse([]response.ApiError{{Code: response.ErrorInvalidData, Message: "Data JSON input bad format."}}).WriteJSONResponse(w)
 		return
 	}
 
 	//Validate input
 	if err := ac.mng.GetValidator().Struct(input); err != nil {
-		res.SetBadRequestResponse([]response.ApiError{{Code: response.ErrorInvalidField, Message: err.Error()}}).WriteJsonResponse(w)
+		res.SetBadRequestResponse([]response.ApiError{{Code: response.ErrorInvalidField, Message: err.Error()}}).WriteJSONResponse(w)
 		return
 	}
 

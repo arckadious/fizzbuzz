@@ -119,13 +119,13 @@ func (ac *FizzAction) HandleFizz(w http.ResponseWriter, r *http.Request) <span c
         defer r.Body.Close()
         err := json.NewDecoder(r.Body).Decode(&amp;input)
         if err != nil </span><span class="cov0" title="0">{
-                res.SetBadRequestResponse([]response.ApiError{{Code: response.ErrorInvalidData, Message: "Data JSON input bad format."}}).WriteJsonResponse(w)
+                res.SetBadRequestResponse([]response.ApiError{{Code: response.ErrorInvalidData, Message: "Data JSON input bad format."}}).WriteJSONResponse(w)
                 return
         }</span>
 
         //Validate input
         <span class="cov0" title="0">if err := ac.mng.GetValidator().Struct(input); err != nil </span><span class="cov0" title="0">{
-                res.SetBadRequestResponse([]response.ApiError{{Code: response.ErrorInvalidField, Message: err.Error()}}).WriteJsonResponse(w)
+                res.SetBadRequestResponse([]response.ApiError{{Code: response.ErrorInvalidField, Message: err.Error()}}).WriteJSONResponse(w)
                 return
         }</span>
 
@@ -265,8 +265,9 @@ func New(fileName string, validator validator.Validate) (c *Config, err error) <
 		<pre class="file" id="file2" style="display: none">package container
 
 import (
+        "database/sql"
+
         fizzaction "github.com/arckadious/fizzbuzz/action/fizz"
-        "github.com/arckadious/fizzbuzz/database"
         "github.com/arckadious/fizzbuzz/repository"
 
         "net/http"
@@ -283,19 +284,20 @@ type Container struct {
         Validator *validator.Validate
 
         FizzAction *fizzaction.FizzAction
-
-        Repo     *repository.Repository
-        RepoFizz *repository.RepositoryFizz
+        db         *sql.DB
+        Repo       *repository.Repository
+        RepoFizz   *repository.RepositoryFizz
 }
 
 // Container constructor
-func New(conf *config.Config, validator *validator.Validate) *Container <span class="cov8" title="1">{
+func New(conf *config.Config, validator *validator.Validate, db *sql.DB) *Container <span class="cov8" title="1">{
 
         container := Container{
                 Conf:      conf,
                 Validator: validator,
+                db:        db,
         }
-        container.setRepositories()
+        container.setRepositories(db)
         container.setActions()
 
         return &amp;container
@@ -321,8 +323,8 @@ func (c *Container) setActions() *Container <span class="cov8" title="1">{
         return c
 }</span>
 
-func (c *Container) setRepositories() <span class="cov8" title="1">{
-        c.Repo = repository.NewRepository(database.New(c.Conf))
+func (c *Container) setRepositories(db *sql.DB) <span class="cov8" title="1">{
+        c.Repo = repository.NewRepository(db)
         c.RepoFizz = repository.NewFizzRepository(c.Repo)
 }</span>
 </pre>
@@ -416,7 +418,7 @@ func (m *Fizz) HandleFizz(w http.ResponseWriter, input model.Input) <span class=
 
         <span class="cov0" title="0">output := strings.Join(tab, ",")
 
-        res.SetData(output).WriteJsonResponse(w)</span>
+        res.SetData(output).WriteJSONResponse(w)</span>
 }
 
 func (m *Fizz) HandleStatistics(w http.ResponseWriter) <span class="cov0" title="0">{
@@ -426,22 +428,22 @@ func (m *Fizz) HandleStatistics(w http.ResponseWriter) <span class="cov0" title=
         msg, hits, noRows, err := m.repoFizz.GetMostRequestUsed()
         if err != nil </span><span class="cov0" title="0">{
                 if noRows </span><span class="cov0" title="0">{
-                        res.SetStatusCode(http.StatusPartialContent).WriteJsonResponse(w)
+                        res.SetStatusCode(http.StatusPartialContent).WriteJSONResponse(w)
                         return
                 }</span>
-                <span class="cov0" title="0">res.SetInternalServerErrorResponse([]response.ApiError{{Code: response.ErrorInternalServerError, Message: err.Error()}}).WriteJsonResponse(w)
+                <span class="cov0" title="0">res.SetInternalServerErrorResponse([]response.ApiError{{Code: response.ErrorInternalServerError, Message: err.Error()}}).WriteJSONResponse(w)
                 return</span>
         }
 
         <span class="cov0" title="0">var msgStruct model.Input
         err = json.Unmarshal([]byte(msg), &amp;msgStruct)
         if err != nil </span><span class="cov0" title="0">{
-                res.SetInternalServerErrorResponse([]response.ApiError{{Code: response.ErrorInternalServerError, Message: err.Error()}}).WriteJsonResponse(w)
+                res.SetInternalServerErrorResponse([]response.ApiError{{Code: response.ErrorInternalServerError, Message: err.Error()}}).WriteJSONResponse(w)
                 return
         }</span>
 
         //TO DO
-        <span class="cov0" title="0">res.SetData(model.Output{Hits: hits, Request: msgStruct}).WriteJsonResponse(w)</span>
+        <span class="cov0" title="0">res.SetData(model.Output{Hits: hits, Request: msgStruct}).WriteJSONResponse(w)</span>
 }
 </pre>
 		
@@ -732,7 +734,7 @@ func (res *ApiResponse) GetErrorMessageSlice(code string, field string, message 
 }</span>
 
 // WriteJson output write json response
-func (res *ApiResponse) WriteJsonResponse(w http.ResponseWriter) <span class="cov0" title="0">{
+func (res *ApiResponse) WriteJSONResponse(w http.ResponseWriter) <span class="cov0" title="0">{
         w.Header().Set("Content-Type", "application/json")
         w.WriteHeader(res.StatusCode)
         resp, _ := json.Marshal(res)
@@ -886,7 +888,7 @@ func (s *Server) notFoundHandler(w http.ResponseWriter, r *http.Request) <span c
 
         res := response.NewApiResponse(http.StatusNotFound, response.StatusError, make([]response.ApiError, 0), nil)
         res.SetErrorMessages(res.GetErrorMessageSlice(response.ErrorRouteNotFound, "", "Route Not Found."))
-        res.WriteJsonResponse(w)
+        res.WriteJSONResponse(w)
 
         return
 }</span>
@@ -900,7 +902,7 @@ func (s *Server) panicRecoveryHandler(w http.ResponseWriter, r *http.Request) <s
 
         res := response.NewApiResponse(http.StatusInternalServerError, response.StatusError, make([]response.ApiError, 0), nil)
         res.SetErrorMessages(res.GetErrorMessageSlice(response.ErrorInternalServerError, "", "Internal Server Error"))
-        res.WriteJsonResponse(w)
+        res.WriteJSONResponse(w)
 
         return
 }</span>
@@ -912,7 +914,7 @@ func (s *Server) methodNotAllowedHandler(w http.ResponseWriter, r *http.Request)
 
         res := response.NewApiResponse(http.StatusMethodNotAllowed, response.StatusError, make([]response.ApiError, 0), nil)
         res.SetErrorMessages(res.GetErrorMessageSlice(response.ErrorMethodNotAllowed, "", "Method is not allowed."))
-        res.WriteJsonResponse(w)
+        res.WriteJSONResponse(w)
 
         return
 }</span>

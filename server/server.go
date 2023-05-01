@@ -144,7 +144,7 @@ func (s *Server) notFoundHandler(w http.ResponseWriter, r *http.Request) {
 
 	res := response.NewApiResponse(http.StatusNotFound, response.StatusError, make([]response.ApiError, 0), nil)
 	res.SetErrorMessages(res.GetErrorMessageSlice(response.ErrorRouteNotFound, "", "Route Not Found."))
-	res.WriteJsonResponse(w)
+	res.WriteJSONResponse(w)
 
 	return
 }
@@ -158,7 +158,7 @@ func (s *Server) panicRecoveryHandler(w http.ResponseWriter, r *http.Request) {
 
 	res := response.NewApiResponse(http.StatusInternalServerError, response.StatusError, make([]response.ApiError, 0), nil)
 	res.SetErrorMessages(res.GetErrorMessageSlice(response.ErrorInternalServerError, "", "Internal Server Error"))
-	res.WriteJsonResponse(w)
+	res.WriteJSONResponse(w)
 
 	return
 }
@@ -170,7 +170,7 @@ func (s *Server) methodNotAllowedHandler(w http.ResponseWriter, r *http.Request)
 
 	res := response.NewApiResponse(http.StatusMethodNotAllowed, response.StatusError, make([]response.ApiError, 0), nil)
 	res.SetErrorMessages(res.GetErrorMessageSlice(response.ErrorMethodNotAllowed, "", "Method is not allowed."))
-	res.WriteJsonResponse(w)
+	res.WriteJSONResponse(w)
 
 	return
 }

@@ -127,7 +127,7 @@ func (res *ApiResponse) GetErrorMessageSlice(code string, field string, message 
 }
 
 // WriteJson output write json response
-func (res *ApiResponse) WriteJsonResponse(w http.ResponseWriter) {
+func (res *ApiResponse) WriteJSONResponse(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(res.StatusCode)
 	resp, _ := json.Marshal(res)

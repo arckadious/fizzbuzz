@@ -49,7 +49,7 @@ func (m *Fizz) HandleFizz(w http.ResponseWriter, input model.Input) {
 
 	output := strings.Join(tab, ",")
 
-	res.SetData(output).WriteJsonResponse(w)
+	res.SetData(output).WriteJSONResponse(w)
 }
 
 func (m *Fizz) HandleStatistics(w http.ResponseWriter) {
@@ -59,20 +59,20 @@ func (m *Fizz) HandleStatistics(w http.ResponseWriter) {
 	msg, hits, noRows, err := m.repoFizz.GetMostRequestUsed()
 	if err != nil {
 		if noRows {
-			res.SetStatusCode(http.StatusPartialContent).WriteJsonResponse(w)
+			res.SetStatusCode(http.StatusPartialContent).WriteJSONResponse(w)
 			return
 		}
-		res.SetInternalServerErrorResponse([]response.ApiError{{Code: response.ErrorInternalServerError, Message: err.Error()}}).WriteJsonResponse(w)
+		res.SetInternalServerErrorResponse([]response.ApiError{{Code: response.ErrorInternalServerError, Message: err.Error()}}).WriteJSONResponse(w)
 		return
 	}
 
 	var msgStruct model.Input
 	err = json.Unmarshal([]byte(msg), &msgStruct)
 	if err != nil {
-		res.SetInternalServerErrorResponse([]response.ApiError{{Code: response.ErrorInternalServerError, Message: err.Error()}}).WriteJsonResponse(w)
+		res.SetInternalServerErrorResponse([]response.ApiError{{Code: response.ErrorInternalServerError, Message: err.Error()}}).WriteJSONResponse(w)
 		return
 	}
 
 	//TO DO
-	res.SetData(model.Output{Hits: hits, Request: msgStruct}).WriteJsonResponse(w)
+	res.SetData(model.Output{Hits: hits, Request: msgStruct}).WriteJSONResponse(w)
 }

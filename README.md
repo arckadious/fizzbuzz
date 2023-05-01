@@ -1,4 +1,5 @@
 # Fizzbuzz
+
  [![Codacy Badge](https://app.codacy.com/project/badge/Grade/d097d0142e6043a3936879cd0433a696)](https://app.codacy.com/gh/arckadious/fizzbuzz/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)  [![Go Report Card](https://goreportcard.com/badge/github.com/arckadious/fizzbuzz?refresh=1)](https://goreportcard.com/report/github.com/arckadious/fizzbuzz)  [![codecov](https://codecov.io/gh/arckadious/fizzbuzz/branch/master/graph/badge.svg)](https://codecov.io/gh/arckadious/fizzbuzz)  [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/arckadious/fizbuzz/LICENSE)  [![Go](https://img.shields.io/badge/Made%20with-Go-1f425f.svg)](https://go.dev/)
 
 
@@ -13,16 +14,16 @@ ______________
 
 
 - [:arrows_clockwise: Requirements](#arrows_clockwise-requirements)
-      - [Local Requirements](#local-requirements)
+  - [Local Requirements](#local-requirements)
 - [:package: Dependencies](#package-dependencies)
-    - [Indirect Dependencies](#indirect-dependencies)
+  - [Indirect Dependencies](#indirect-dependencies)
 - [:vertical_traffic_light: Usages](#vertical_traffic_light-usages)
-    - [Remote Uses](#remote-uses)
-    - [Start containers](#start-containers)
-    - [Local Installation](#local-installation)
-    - [Run API Server (with air)](#run-api-server-with-air)
-    - [Run API Server (without air)](#run-api-server-without-air)
-    - [Run Tests](#run-tests)
+  - [Remote Uses](#remote-uses)
+  - [Start containers](#start-containers)
+  - [Local Installation](#local-installation)
+  - [Run API Server (with air)](#run-api-server-with-air)
+  - [Run API Server (without air)](#run-api-server-without-air)
+  - [Run Tests](#run-tests)
 - [:whale: Environment](#whale-environment)
 - [:mag: Configuration](#mag-configuration)
 - [:page_with_curl: Logs](#page_with_curl-logs)
@@ -46,7 +47,7 @@ ______________
 
 Golang 1.19+
 
-#####  Local Requirements
+### Local Requirements
 * [docker](https://docs.docker.com/installation/)
 * make
 
@@ -60,16 +61,16 @@ Golang 1.19+
 |Logrus|github.com/sirupsen/logrus|v1.9.0|
 |Testify|github.com/stretchr/testify|v1.8.2|
 
-#### Indirect Dependencies
+### Indirect Dependencies
 > See [go.mod](go.mod)
 
 ## :vertical_traffic_light: Usages
 
-#### Remote Uses
+### Remote Uses
 
 The binary is built during deployment
 
- - Possible option :
+ - Possible(s) option(s) :
 	  `-config=[PATH]`     => by default if not specified, config path will be ./parameters/parameters.json
 
 
@@ -81,31 +82,31 @@ The binary is built during deployment
    # run api with specific config
    $ go run main.go -config=./parameters/parameters.json
 ````
-#### Start containers
+### Start containers
 ````:shell 
 $ make
   ````
 
-#### Local Installation
+### Local Installation
  ````:shell 
 $ git clone https://github.com/arckadious/fizzbuzz.git
 $ cd fizzbuzz
 $ make install
 ````
 > 'make install' : You will not have to download dependencies again while running 'make run' or 'make srv'.
-#### Run API Server (with air)
+### Run API Server (with air)
 > [What is air ?](https://github.com/cosmtrek/air)
 ````:shell 
 $ make srv
   ````
 > If you have issues with live reloading, try poll = true instead of false in [.air.toml](.air.toml) config file, or update docker to last version. 
 
-#### Run API Server (without air)
+### Run API Server (without air)
 ````:shell 
 $ make run
   ````
 
-#### Run Tests
+### Run Tests
 > MariaDB database need to be initialized and available ('make tests' use MySQL database from [api config file](./parameters/parameters.json)).
 ````:shell 
 $ make tests
