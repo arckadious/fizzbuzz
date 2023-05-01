@@ -1,18 +1,30 @@
-name: Test and coverage
+# name: Test and coverage
 
-on: [push, pull_request]
+# on: [push, pull_request]
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 2
-      - uses: actions/setup-go@v2
-        with:
-          go-version: '1.19.8'
-      - name: Run coverage
-        run: go test ./... -race -coverprofile=coverage.out -covermode=atomic
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+# jobs:
+#   build:
+#     env:
+#       TZ: Europe/Paris    #timezone for db datetime
+#       DB_DATABASE: DB
+#       DB_USER: root
+#       DB_PASSWORD: root
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v2
+#         with:
+#           fetch-depth: 2
+#       - name: Set up MySQL
+#         run: |
+#           sudo /etc/init.d/mysql start
+#           sudo mysql -uroot -e 'CREATE DATABASE ${{ env.DB_DATABASE }}; update user set authentication_string=PASSWORD("admin") where User='root';' -p
+#           cat dump.sql | sudo mysql -uroot -padmin
+#       - uses: actions/setup-go@v2
+#         with:
+#           go-version: '1.19.8'
+#       - name: Add hosts to /etc/hosts
+#         run: sudo echo "127.0.0.1 mariadb" | sudo tee -a /etc/hosts
+#       - name: Run coverage
+#         run: go test ./... -race -coverprofile=coverage.out -covermode=atomic
+#       - name: Upload coverage to Codecov
+#         uses: codecov/codecov-action@v3

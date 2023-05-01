@@ -15,7 +15,7 @@ DB = mariadb
 LOGS = dozzle
 PHPMYADMIN = phpmyadmin
 
-DK_EXEC = docker exec -ti $$($(DOCKER_COMPOSE) ps -q $(APP))
+DK_EXEC = docker exec -ti $$($(DOCKER_COMPOSE) ps -qa $(APP))
 
 all: 
 	@$(DOCKER_COMPOSE) up -d
@@ -49,14 +49,14 @@ stop:
 
 # stop reverse proxy if running and rm container
 stop-rp:
-	@docker stop $$($(DOCKER_COMPOSE) ps -q $(REVERSEPROXY)) || true && docker rm --force $$($(DOCKER_COMPOSE) ps -q $(REVERSEPROXY)) || true
+	@docker stop $$($(DOCKER_COMPOSE) ps -qa $(REVERSEPROXY)) || true && docker rm --force $$($(DOCKER_COMPOSE) ps -qa $(REVERSEPROXY)) || true
 
 stop-db:
-	@docker stop $$($(DOCKER_COMPOSE) ps -q $(DB)) || true && docker rm --force $$($(DOCKER_COMPOSE) ps -q $(DB)) || true
-	@docker stop $$($(DOCKER_COMPOSE) ps -q $(PHPMYADMIN)) || true && docker rm --force $$($(DOCKER_COMPOSE) ps -q $(PHPMYADMIN)) || true
+	@docker stop $$($(DOCKER_COMPOSE) ps -qa $(DB)) || true && docker rm --force $$($(DOCKER_COMPOSE) ps -qa $(DB)) || true
+	@docker stop $$($(DOCKER_COMPOSE) ps -qa $(PHPMYADMIN)) || true && docker rm --force $$($(DOCKER_COMPOSE) ps -qa $(PHPMYADMIN)) || true
 
 stop-logs:
-	@docker stop $$($(DOCKER_COMPOSE) ps -q $(LOGS)) || true && docker rm --force $$($(DOCKER_COMPOSE) ps -q $(LOGS)) || true
+	@docker stop $$($(DOCKER_COMPOSE) ps -qa $(LOGS)) || true && docker rm --force $$($(DOCKER_COMPOSE) ps -qa $(LOGS)) || true
 
 kill:
 	@$(DOCKER_COMPOSE) kill || true
@@ -65,7 +65,7 @@ rm: stop
 	@$(DOCKER_COMPOSE) rm --force $(APP) || true
 	
 in: install
-install:
+install: all
 	@$(DK_EXEC) bash -c "go mod tidy && go mod download && go mod vendor"
 
 update:

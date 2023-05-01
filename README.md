@@ -92,7 +92,7 @@ $ git clone https://github.com/arckadious/fizzbuzz.git
 $ cd fizzbuzz
 $ make install
 ````
-> You will not have to download dependencies again while running 'make run' or 'make srv'.
+> 'make install' : You will not have to download dependencies again while running 'make run' or 'make srv'.
 #### Run API Server (with air)
 > [What is air ?](https://github.com/cosmtrek/air)
 ````:shell 
@@ -110,6 +110,7 @@ $ make run
 ````:shell 
 $ make tests
 ````
+_____________
 
 >For more commands, see [Makefile](Makefile)
 
@@ -141,10 +142,10 @@ This application use 3 types of logs:
 
 ### Applicative logs
 
-Fizzbuzz API use a logger middleware, which send requests and responses to a MySQL Database. 
+Fizzbuzz API uses a logger middleware, which send requests and responses to a MySQL Database. 
 >'/swagger' api endpoint is excluded from applicative logs.
 
-You can see these logs at phpmyadmin.localhost:8080. Requests and responses are separated in two tables, and bound by a "COR_ID".
+Using local database, you can see these logs at phpmyadmin.localhost:8080. Requests and responses are separated in two tables, and bound by a "COR_ID".
 
 ````sql
 -- SQL Left Join example to use the COR_ID bind
@@ -159,7 +160,7 @@ LEFT JOIN MESSAGES_RESPONSE as mp ON mr.COR_ID = mp.COR_ID;
 
 Gin Framework log each request sent to fizzbuzz API.
 
-> gin.log logs are available only for localhost environment.
+> gin.log logs are available only for localhost environment purposes.
 
 - Example :
 ````log
