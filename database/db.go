@@ -15,6 +15,7 @@ const (
 	timeout = 5
 )
 
+// DB class
 type DB struct {
 	dbConnector *sql.DB
 	cf          *config.Config

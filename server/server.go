@@ -1,3 +1,4 @@
+// This package creates and run a rest API server, using Gin framework
 package server
 
 import (
@@ -43,12 +44,12 @@ func (w bodyLogWriter) Write(b []byte) (int, error) {
 	return w.ResponseWriter.Write(b)
 }
 
-// Server httpServer struct
+// Server class
 type Server struct {
 	container *container.Container
 }
 
-// New create server
+// New constructor Server
 func New(cntnr *container.Container) *Server {
 	return &Server{
 		container: cntnr,
@@ -99,6 +100,7 @@ func (s *Server) Run() {
 	logrus.Warn("Server shutdown")
 }
 
+// Handler configures all endpoints and middlewares with Gin
 func (s *Server) Handler() *gin.Engine {
 
 	router := gin.New()
@@ -145,7 +147,7 @@ func (s *Server) Handler() *gin.Engine {
 
 }
 
-// notFoundHandler
+// notFoundHandler handles API server response when endpoint couldn't be found
 func (s *Server) notFoundHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
@@ -157,7 +159,7 @@ func (s *Server) notFoundHandler(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-// panicRecoveryHandler (in case of 'panic' call during process, return a custom 500 internal server error instead of nothing.)
+// panicRecoveryHandler : in case of unexpected 'panic' call during process, return a custom 500 internal server error instead of nothing.
 func (s *Server) panicRecoveryHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
@@ -171,7 +173,7 @@ func (s *Server) panicRecoveryHandler(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-// methodNotAllowedHandler
+// methodNotAllowedHandler handles API server response when endpoint method is not allowed
 func (s *Server) methodNotAllowedHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
@@ -183,12 +185,12 @@ func (s *Server) methodNotAllowedHandler(w http.ResponseWriter, r *http.Request)
 	return
 }
 
-// audit requests and response to DB
+// Logger send requests and response to database, and generate checksum if needed
 func (s *Server) Logger() gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		//Generate unique ID to make link between request and its associated response (stored in a different table)
-		corID, _ := util.GenerateUUID()
+		corID, _ := util.GenerateUID()
 
 		body, err := util.ExtractBody(c.Request)
 		if err != nil {

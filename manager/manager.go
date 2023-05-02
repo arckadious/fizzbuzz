@@ -9,7 +9,7 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-// Manager
+// Manager Class
 type Manager struct {
 	cf          *config.Config
 	apiResponse response.ApiResponse

@@ -15,6 +15,7 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
+// Container class
 type Container struct {
 	Conf      *config.Config
 	Validator *validator.Validate

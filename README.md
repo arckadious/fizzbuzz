@@ -270,7 +270,9 @@ fizzbuzz
     │
     ├───swaggerui       >>> API documentation (Cf. swagger.json)
     │
-    ├───tests >>> contains 'make tests' results (with html coverage file)
+    ├───util      >>> contains various useful tools like MD5 Hash and http body extract
+    │
+    ├───tests     >>> contains 'make tests' results (with html coverage file)
     │
     └───validator
 ````

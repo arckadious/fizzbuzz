@@ -10,6 +10,7 @@ import (
 	"github.com/arckadious/fizzbuzz/response"
 )
 
+// FizzAction class
 type FizzAction struct {
 	mng *manager.Fizz
 }

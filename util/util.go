@@ -1,3 +1,4 @@
+// This package contains various useful tools like MD5 Hash and http body extract
 package util
 
 import (
@@ -11,7 +12,8 @@ import (
 	"net/http"
 )
 
-func GenerateUUID() (uuid string, err error) {
+// GenerateUID creates a unique ID (used to make a corelation between http requests and responses in database)
+func GenerateUID() (uuid string, err error) {
 	b := make([]byte, 16)
 	_, err = rand.Read(b)
 	if err != nil {
@@ -22,6 +24,7 @@ func GenerateUUID() (uuid string, err error) {
 	return
 }
 
+// ExtractBody extracts a copy of http request body
 func ExtractBody(r *http.Request) (body []byte, err error) {
 	if r == nil {
 		err = errors.New("Extract body : request nil")
@@ -35,7 +38,7 @@ func ExtractBody(r *http.Request) (body []byte, err error) {
 	return
 }
 
-// GetMD5Hash return MD5 from text
+// GetMD5Hash return MD5 hash from text
 func GetMD5Hash(text string) string {
 	hasher := md5.New()
 	hasher.Write([]byte(text))

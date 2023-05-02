@@ -10,8 +10,8 @@
         "port": "3306",
         "name": "DB",
         "charset": "UTF8",
-        "maxOpenConns": 10,
-        "maxIdleConns": 1,
-        "maxConnLifeTime": 60
+        "maxOpenConns": 25,
+        "maxIdleConns": 25,
+        "maxConnLifeTime": 300
     }
 }

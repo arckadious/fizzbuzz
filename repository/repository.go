@@ -1,3 +1,4 @@
+// This package contains all functions which interact with database
 package repository
 
 import (
@@ -10,6 +11,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// Repository class
 type Repository struct {
 	db *database.DB
 }
@@ -19,6 +21,7 @@ func New(Db *database.DB) *Repository {
 	return &Repository{Db}
 }
 
+// LogToDB store requests and responses in database.
 func (r *Repository) LogToDB(logType, msg, url, corID, checksum, status string) {
 	if strings.ToUpper(logType) != "REQUEST" && strings.ToUpper(logType) != "RESPONSE" {
 		logrus.Error("Logger coudn't audit data: Logger Type unkwown.")

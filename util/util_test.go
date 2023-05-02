@@ -1,3 +1,4 @@
+// This package contains various useful tools like MD5 Hash and http body extract
 package util
 
 import (
@@ -13,8 +14,8 @@ import (
 
 func TestUtil(t *testing.T) {
 
-	//GenerateUUID
-	uuid, err := GenerateUUID()
+	//GenerateUID
+	uuid, err := GenerateUID()
 	assert.Equal(t, nil, err)
 	assert.NotEqual(t, "", uuid)
 

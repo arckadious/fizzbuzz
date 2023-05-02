@@ -1,3 +1,4 @@
+// This package contains JSON response templates functions
 package response
 
 import (
@@ -18,6 +19,7 @@ const (
 	ErrorMethodNotAllowed    = "METHOD_NOT_ALLOWED_ERR"
 )
 
+// ApiResponse class
 type ApiResponse struct {
 	StatusCode int         `json:"-"`
 	Status     string      `json:"status"`
@@ -41,31 +43,31 @@ func New(statusCode int, status string, errorMessages []ApiError, data interface
 	}
 }
 
-// Set api response status code
+// SetStatusCode set api response status code
 func (res *ApiResponse) SetStatusCode(statusCode int) *ApiResponse {
 	res.StatusCode = statusCode
 	return res
 }
 
-// Set api response content status
+// SetStatus set api response content status
 func (res *ApiResponse) SetStatus(status string) *ApiResponse {
 	res.Status = status
 	return res
 }
 
-// Set api response content data
+// Setdata set api response content data
 func (res *ApiResponse) SetData(data interface{}) *ApiResponse {
 	res.Data = data
 	return res
 }
 
-// Set api response meta data
+// SetErrorMessages set api response meta data
 func (res *ApiResponse) SetErrorMessages(messages []ApiError) *ApiResponse {
 	res.Messages = messages
 	return res
 }
 
-// Set custom error response to be returned
+// SetCustomErrorResponse set custom error response to be returned
 func (res *ApiResponse) SetCustomErrorResponse(httpCode int, status string, messages []ApiError) *ApiResponse {
 	res.SetStatusCode(httpCode)
 	res.SetStatus(status)
@@ -73,40 +75,41 @@ func (res *ApiResponse) SetCustomErrorResponse(httpCode int, status string, mess
 	return res
 }
 
-// Set bad request response
+// SetBadRequestResponse
 func (res *ApiResponse) SetBadRequestResponse(messages []ApiError) *ApiResponse {
 	res.SetCustomErrorResponse(http.StatusBadRequest, StatusError, messages)
 	return res
 }
 
-// Set forbidden response
+// SetForbiddenResponse
 func (res *ApiResponse) SetForbiddenResponse(messages []ApiError) *ApiResponse {
 	res.SetCustomErrorResponse(http.StatusForbidden, StatusError, messages)
 	return res
 }
 
-// Set not found response
+// SetNotFoundResponse
 func (res *ApiResponse) SetNotFoundResponse(messages []ApiError) *ApiResponse {
 	res.SetCustomErrorResponse(http.StatusNotFound, StatusError, messages)
 	return res
 }
 
-// Set internal server error response
+// SetInternalServerErrorResponse
 func (res *ApiResponse) SetInternalServerErrorResponse(messages []ApiError) *ApiResponse {
 	res.SetCustomErrorResponse(http.StatusInternalServerError, StatusError, messages)
 	return res
 }
 
-// Add new error message to error list
+// AddErrorMessage add new error message to error list
 func (res *ApiResponse) AddErrorMessage(msg ApiError) {
 	res.Messages = append(res.Messages, msg)
 }
 
-// Returns new error struct from code and message
+// CreateErrorMessage returns new error struct from code and message
 func (res *ApiResponse) CreateErrorMessage(code string, field string, message string) ApiError {
 	return ApiError{code, field, message}
 }
 
+// GetErrorMessagesSLice returns an array of code with its description
 func (res *ApiResponse) GetErrorMessageSlice(code string, field string, message string) []ApiError {
 	var erros []ApiError
 	erros = append(erros, res.CreateErrorMessage(code, field, message))

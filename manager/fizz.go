@@ -12,6 +12,7 @@ import (
 	"github.com/arckadious/fizzbuzz/response"
 )
 
+// Fizz Class (manager child class)
 type Fizz struct {
 	*Manager //Fizz class has attributes and methods from manager parent class
 	repoFizz *repository.Fizz
