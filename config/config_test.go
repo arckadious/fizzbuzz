@@ -23,7 +23,7 @@ func TestNew(t *testing.T) {
 	//config file wrong format
 	_, err = New("../main.go", *validator.New())
 	assert.NotEqual(t, nil, err)
-	assert.Equal(t, "invalid character 'p' looking for beginning of value", err.Error())
+	assert.Equal(t, "invalid character '/' looking for beginning of value", err.Error())
 
 	//Gin debug mode
 	_, err = New("../tests/mock/parameters-gindebug.json", *validator.New())
