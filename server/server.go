@@ -79,6 +79,9 @@ func (s *Server) Run() {
 		}
 	}()
 
+	// Shutdown Database connections gracefully
+	defer s.container.Db.Shutdown()
+
 	// Process signals channel
 	sigChannel := make(chan os.Signal, 1)
 
@@ -147,7 +150,7 @@ func (s *Server) notFoundHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
-	res := response.NewApiResponse(http.StatusNotFound, response.StatusError, make([]response.ApiError, 0), nil)
+	res := response.New(http.StatusNotFound, response.StatusError, make([]response.ApiError, 0), nil)
 	res.SetErrorMessages(res.GetErrorMessageSlice(response.ErrorRouteNotFound, "", "Route Not Found."))
 	res.WriteJSONResponse(w)
 
@@ -161,7 +164,7 @@ func (s *Server) panicRecoveryHandler(w http.ResponseWriter, r *http.Request) {
 
 	gin.Recovery()
 
-	res := response.NewApiResponse(http.StatusInternalServerError, response.StatusError, make([]response.ApiError, 0), nil)
+	res := response.New(http.StatusInternalServerError, response.StatusError, make([]response.ApiError, 0), nil)
 	res.SetErrorMessages(res.GetErrorMessageSlice(response.ErrorInternalServerError, "", "Internal Server Error"))
 	res.WriteJSONResponse(w)
 
@@ -173,7 +176,7 @@ func (s *Server) methodNotAllowedHandler(w http.ResponseWriter, r *http.Request)
 
 	w.Header().Set("Content-Type", "application/json")
 
-	res := response.NewApiResponse(http.StatusMethodNotAllowed, response.StatusError, make([]response.ApiError, 0), nil)
+	res := response.New(http.StatusMethodNotAllowed, response.StatusError, make([]response.ApiError, 0), nil)
 	res.SetErrorMessages(res.GetErrorMessageSlice(response.ErrorMethodNotAllowed, "", "Method is not allowed."))
 	res.WriteJSONResponse(w)
 

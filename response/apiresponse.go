@@ -4,13 +4,12 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/arckadious/fizzbuzz/vendor/github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 const (
 	StatusError   = "error"
 	StatusSuccess = "success"
-	StatusWarning = "warning"
 
 	ErrorInvalidData         = "INVALID_DATA_ERR"
 	ErrorInvalidField        = "INVALID_FIELD_ERR"
@@ -32,22 +31,8 @@ type ApiError struct {
 	Message string `json:"message"`
 }
 
-// Constructor of the new error
-func NewApiError(code string, message string, field string) *ApiError {
-	return &ApiError{
-		Code:    code,
-		Field:   field,
-		Message: message,
-	}
-}
-
-// Redefine the error interface function
-func (c *ApiError) Error() string {
-	return c.Message
-}
-
-// New create a new Response
-func NewApiResponse(statusCode int, status string, errorMessages []ApiError, data interface{}) *ApiResponse {
+// New constructor ApiResponse : create a new response template
+func New(statusCode int, status string, errorMessages []ApiError, data interface{}) *ApiResponse {
 	return &ApiResponse{
 		StatusCode: statusCode,
 		Status:     status,
@@ -128,7 +113,7 @@ func (res *ApiResponse) GetErrorMessageSlice(code string, field string, message 
 	return erros
 }
 
-// WriteJson output write json response
+// WriteJSONResponse writes json output to json response
 func (res *ApiResponse) WriteJSONResponse(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(res.StatusCode)

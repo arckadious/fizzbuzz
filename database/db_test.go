@@ -13,5 +13,13 @@ import (
 func TestConnect(t *testing.T) {
 	cf, err := config.New("../tests/mock/parametersOK.json", *validator.New())
 	assert.Equal(t, nil, err)
-	Connect(cf)
+
+	db := New(cf)
+	assert.NotEqual(t, nil, db)
+	assert.NotEqual(t, nil, db.GetConnector()) //check if it's nil value //TO DO
+	db.Shutdown()
+
+	//db.connect() // mock test to do
+
+	//benchmark test to do
 }

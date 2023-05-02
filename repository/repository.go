@@ -1,21 +1,21 @@
 package repository
 
 import (
-	"database/sql"
 	"os"
 	"strings"
 
 	cst "github.com/arckadious/fizzbuzz/constant"
+	"github.com/arckadious/fizzbuzz/database"
 
 	"github.com/sirupsen/logrus"
 )
 
 type Repository struct {
-	db *sql.DB
+	db *database.DB
 }
 
-// New
-func New(Db *sql.DB) *Repository {
+// New constructor Repository
+func New(Db *database.DB) *Repository {
 	return &Repository{Db}
 }
 
@@ -46,7 +46,7 @@ func (r *Repository) LogToDB(logType, msg, url, corID, checksum, status string) 
 		return
 	}
 
-	_, err := r.db.Exec(sql, vals...)
+	_, err := r.db.GetConnector().Exec(sql, vals...)
 	if err != nil {
 		logrus.Error("Logger coudn't send "+logType+" data: ", err)
 		return

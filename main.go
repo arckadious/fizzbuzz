@@ -49,7 +49,7 @@ func main() {
 		container.New(
 			cf,
 			validator,
-			database.Connect(cf),
+			database.New(cf),
 		),
 	).Run()
 }

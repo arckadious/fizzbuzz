@@ -14,11 +14,11 @@ import (
 
 type Fizz struct {
 	*Manager //Fizz class has attributes and methods from manager parent class
-	repoFizz *repository.RepositoryFizz
+	repoFizz *repository.Fizz
 }
 
-// NewFizz constructor Fizz
-func NewFizz(m *Manager, repo *repository.RepositoryFizz) *Fizz {
+// NewFizz constructor Manager child Fizz
+func NewFizz(m *Manager, repo *repository.Fizz) *Fizz {
 	return &Fizz{
 		Manager:  m,
 		repoFizz: repo,
