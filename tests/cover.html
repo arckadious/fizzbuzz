@@ -61,7 +61,7 @@
 				
 				<option value="file2">github.com/arckadious/fizzbuzz/container/container.go (100.0%)</option>
 				
-				<option value="file3">github.com/arckadious/fizzbuzz/database/database.go (81.8%)</option>
+				<option value="file3">github.com/arckadious/fizzbuzz/database/db.go (77.8%)</option>
 				
 				<option value="file4">github.com/arckadious/fizzbuzz/manager/fizz.go (0.0%)</option>
 				
@@ -71,7 +71,7 @@
 				
 				<option value="file7">github.com/arckadious/fizzbuzz/repository/fizz.go (0.0%)</option>
 				
-				<option value="file8">github.com/arckadious/fizzbuzz/repository/repository.go (0.0%)</option>
+				<option value="file8">github.com/arckadious/fizzbuzz/repository/repository.go (100.0%)</option>
 				
 				<option value="file9">github.com/arckadious/fizzbuzz/response/apiresponse.go (0.0%)</option>
 				
@@ -91,7 +91,8 @@
 		</div>
 		<div id="content">
 		
-		<pre class="file" id="file0" style="display: none">package fizz
+		<pre class="file" id="file0" style="display: none">// This package extract and validate data
+package fizz
 
 import (
         "encoding/json"
@@ -102,14 +103,17 @@ import (
         "github.com/arckadious/fizzbuzz/response"
 )
 
+// FizzAction class
 type FizzAction struct {
         mng *manager.Fizz
 }
 
+// NewFizzAction constructor FizzAction
 func NewFizzAction(mng *manager.Fizz) *FizzAction <span class="cov0" title="0">{
         return &amp;FizzAction{mng}
 }</span>
 
+// HandleFizz extract and validate data
 func (ac *FizzAction) HandleFizz(w http.ResponseWriter, r *http.Request) <span class="cov0" title="0">{
 
         res := ac.mng.GetApiResponse() //generic response, unchanged, send 200 OK with json body response
@@ -133,12 +137,14 @@ func (ac *FizzAction) HandleFizz(w http.ResponseWriter, r *http.Request) <span c
 
 }
 
+// HandleStatistics send back statistics about what the most used request has been
 func (ac *FizzAction) HandleStatistics(w http.ResponseWriter, r *http.Request) <span class="cov0" title="0">{
         ac.mng.HandleStatistics(w)
 }</span>
 </pre>
 		
-		<pre class="file" id="file1" style="display: none">package config
+		<pre class="file" id="file1" style="display: none">// This package load API configuration
+package config
 
 import (
         "encoding/json"
@@ -151,7 +157,7 @@ import (
         "github.com/sirupsen/logrus"
 )
 
-// Config contains project general configuration
+// Config class contains project general configuration
 type Config struct {
         Env      string `validate:"required,oneof='localhost' 'dev' 'rct' 'prod' 'develop' 'recette' 'production'"`
         Level    string `validate:"required,oneof='trace' 'debug' 'info' 'warning' 'warn' 'error' 'fatal' 'panic'"`
@@ -171,7 +177,7 @@ type Config struct {
         } `json:"database"`
 }
 
-// lower case on string fields level and Env, to avoid case sensitive
+// UnmarshalJSON : lower case on string fields level and Env, to avoid case sensitive
 func (c *Config) UnmarshalJSON(data []byte) error <span class="cov8" title="1">{
 
         type TmpConfig Config //avoid infinite loop stack exceed.
@@ -191,21 +197,24 @@ func (c *Config) UnmarshalJSON(data []byte) error <span class="cov8" title="1">{
         return nil</span>
 }
 
+// GetRootPath return workspace path
 func (c *Config) GetRootPath() string <span class="cov8" title="1">{
 
         return c.rootPath
 }</span>
 
+// InitRootPath init workspace path
 func (c *Config) InitRootPath(val string) <span class="cov8" title="1">{
         if c.rootPath == "" </span><span class="cov8" title="1">{
                 c.rootPath = val
         }</span>
 }
 
-// New create Config
+// New constructor Config
 func New(fileName string, validator validator.Validate) (c *Config, err error) <span class="cov8" title="1">{
 
         c = &amp;Config{}
+
         //define logrus text formatter
         logrus.SetFormatter(&amp;logrus.TextFormatter{
                 ForceColors:     true,
@@ -262,40 +271,41 @@ func New(fileName string, validator validator.Validate) (c *Config, err error) <
 }
 </pre>
 		
-		<pre class="file" id="file2" style="display: none">package container
+		<pre class="file" id="file2" style="display: none">// This package init all classes
+package container
 
 import (
-        "database/sql"
-
         fizzaction "github.com/arckadious/fizzbuzz/action/fizz"
         "github.com/arckadious/fizzbuzz/repository"
 
         "net/http"
 
         "github.com/arckadious/fizzbuzz/config"
+        "github.com/arckadious/fizzbuzz/database"
         "github.com/arckadious/fizzbuzz/manager"
         "github.com/arckadious/fizzbuzz/response"
 
         "github.com/go-playground/validator/v10"
 )
 
+// Container class
 type Container struct {
         Conf      *config.Config
         Validator *validator.Validate
 
         FizzAction *fizzaction.FizzAction
-        db         *sql.DB
+        Db         *database.DB
         Repo       *repository.Repository
-        RepoFizz   *repository.RepositoryFizz
+        RepoFizz   *repository.Fizz
 }
 
-// Container constructor
-func New(conf *config.Config, validator *validator.Validate, db *sql.DB) *Container <span class="cov8" title="1">{
+// New constructor Container
+func New(conf *config.Config, validator *validator.Validate, db *database.DB) *Container <span class="cov8" title="1">{
 
         container := Container{
                 Conf:      conf,
                 Validator: validator,
-                db:        db,
+                Db:        db,
         }
         container.setRepositories(db)
         container.setActions()
@@ -303,7 +313,6 @@ func New(conf *config.Config, validator *validator.Validate, db *sql.DB) *Contai
         return &amp;container
 }</span>
 
-// Set application actions
 func (c *Container) setActions() *Container <span class="cov8" title="1">{
 
         // Default API Response is always set to HTTP status 200
@@ -323,13 +332,14 @@ func (c *Container) setActions() *Container <span class="cov8" title="1">{
         return c
 }</span>
 
-func (c *Container) setRepositories(db *sql.DB) <span class="cov8" title="1">{
-        c.Repo = repository.NewRepository(db)
-        c.RepoFizz = repository.NewFizzRepository(c.Repo)
+func (c *Container) setRepositories(db *database.DB) <span class="cov8" title="1">{
+        c.Repo = repository.New(db)
+        c.RepoFizz = repository.NewFizz(c.Repo)
 }</span>
 </pre>
 		
-		<pre class="file" id="file3" style="display: none">package database
+		<pre class="file" id="file3" style="display: none">// This package handle connection from the API to database
+package database
 
 import (
         "database/sql"
@@ -341,33 +351,84 @@ import (
         "github.com/sirupsen/logrus"
 )
 
-func New(cf *config.Config) *sql.DB <span class="cov8" title="1">{
-        dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s",
-                cf.Database.Username,
-                cf.Database.Password,
-                cf.Database.Host,
-                cf.Database.Port,
-                cf.Database.Name)
+const (
+        timeout = 5
+)
 
-        db, err := sql.Open("mysql", dsn)
+// DB class
+type DB struct {
+        dbConnector *sql.DB
+        cf          *config.Config
+}
+
+// New constructor DB
+func New(cf *config.Config) *DB <span class="cov8" title="1">{
+        database := DB{
+                cf: cf,
+        }
+
+        var err error
+        database.dbConnector, err = database.connect()
         if err != nil </span><span class="cov0" title="0">{
                 logrus.Fatal(err)
         }</span>
 
-        <span class="cov8" title="1">err = db.Ping()
+        <span class="cov8" title="1">return &amp;database</span>
+
+}
+
+// GetConnector returns sql connector, creating new connection if necessary
+func (db *DB) GetConnector() *sql.DB <span class="cov8" title="1">{
+        err := db.dbConnector.Ping() // Ensure that a connection to the database is still alive, establishing a connection if necessary.
         if err != nil </span><span class="cov0" title="0">{
-                logrus.Fatal(err)
+                logrus.Error("GetConnector MySQL: ", err)
+        }</span>
+        <span class="cov8" title="1">return db.dbConnector</span>
+}
+
+// Shutdown closes the database and prevents new queries from starting. Close then waits for all queries that have started processing on the server to finish.
+func (db *DB) Shutdown() <span class="cov8" title="1">{
+        if db.dbConnector != nil </span><span class="cov8" title="1">{
+                err := db.dbConnector.Close()
+                if err != nil </span><span class="cov0" title="0">{
+                        logrus.Warn(err)
+                        return
+                }</span>
+                <span class="cov8" title="1">logrus.Debugf("Shutdown mysql connections OK")</span>
+        }
+}
+
+// connect establishes connection between API and database
+func (db *DB) connect() (dbConnector *sql.DB, err error) <span class="cov8" title="1">{
+        dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=%s&amp;parseTime=true&amp;timeout=%ds",
+                db.cf.Database.Username,
+                db.cf.Database.Password,
+                db.cf.Database.Host,
+                db.cf.Database.Port,
+                db.cf.Database.Name,
+                db.cf.Database.Charset,
+                timeout)
+
+        dbConnector, err = sql.Open("mysql", dsn)
+        if err != nil </span><span class="cov0" title="0">{
+                return
         }</span>
 
-        <span class="cov8" title="1">db.SetMaxOpenConns(cf.Database.MaxOpenConns)
-        db.SetMaxIdleConns(cf.Database.MaxIdleConns)
-        db.SetConnMaxLifetime(cf.Database.MaxConnLifeTime * time.Second)
+        <span class="cov8" title="1">err = dbConnector.Ping()
+        if err != nil </span><span class="cov0" title="0">{
+                return
+        }</span>
 
-        return db</span>
+        <span class="cov8" title="1">dbConnector.SetMaxOpenConns(db.cf.Database.MaxOpenConns)
+        dbConnector.SetMaxIdleConns(db.cf.Database.MaxIdleConns)
+        dbConnector.SetConnMaxLifetime(db.cf.Database.MaxConnLifeTime * time.Second)
+
+        return</span>
 }
 </pre>
 		
-		<pre class="file" id="file4" style="display: none">package manager
+		<pre class="file" id="file4" style="display: none">// This package process data from action class handlers
+package manager
 
 import (
         "encoding/json"
@@ -380,20 +441,21 @@ import (
         "github.com/arckadious/fizzbuzz/response"
 )
 
-// Manager fizz
+// Fizz Class (manager child class)
 type Fizz struct {
         *Manager //Fizz class has attributes and methods from manager parent class
-        repoFizz *repository.RepositoryFizz
+        repoFizz *repository.Fizz
 }
 
-// NewFizz Constructor
-func NewFizz(m *Manager, repo *repository.RepositoryFizz) *Fizz <span class="cov0" title="0">{
+// NewFizz constructor Manager child Fizz
+func NewFizz(m *Manager, repo *repository.Fizz) *Fizz <span class="cov0" title="0">{
         return &amp;Fizz{
                 Manager:  m,
                 repoFizz: repo,
         }
 }</span>
 
+// HandleFizz writes to 'w' a list of strings with numbers from 1 to limit, where: all multiples specified are replaced by text
 func (m *Fizz) HandleFizz(w http.ResponseWriter, input model.Input) <span class="cov0" title="0">{
 
         res := m.GetApiResponse()
@@ -421,13 +483,14 @@ func (m *Fizz) HandleFizz(w http.ResponseWriter, input model.Input) <span class=
         res.SetData(output).WriteJSONResponse(w)</span>
 }
 
+// HandleStatistics write to 'w' the parameters corresponding to the most used request, as well as the number of hits for this request.
 func (m *Fizz) HandleStatistics(w http.ResponseWriter) <span class="cov0" title="0">{
 
         res := m.GetApiResponse()
 
         msg, hits, noRows, err := m.repoFizz.GetMostRequestUsed()
         if err != nil </span><span class="cov0" title="0">{
-                if noRows </span><span class="cov0" title="0">{
+                if noRows </span><span class="cov0" title="0">{ // Database does not contain rows with checksum not empty
                         res.SetStatusCode(http.StatusPartialContent).WriteJSONResponse(w)
                         return
                 }</span>
@@ -442,12 +505,12 @@ func (m *Fizz) HandleStatistics(w http.ResponseWriter) <span class="cov0" title=
                 return
         }</span>
 
-        //TO DO
         <span class="cov0" title="0">res.SetData(model.Output{Hits: hits, Request: msgStruct}).WriteJSONResponse(w)</span>
 }
 </pre>
 		
-		<pre class="file" id="file5" style="display: none">package manager
+		<pre class="file" id="file5" style="display: none">// This package process data from action class handlers
+package manager
 
 import (
         "github.com/arckadious/fizzbuzz/config"
@@ -457,7 +520,7 @@ import (
         "github.com/go-playground/validator/v10"
 )
 
-// Manager
+// Manager Class
 type Manager struct {
         cf          *config.Config
         apiResponse response.ApiResponse
@@ -465,27 +528,29 @@ type Manager struct {
         repo        *repository.Repository
 }
 
-// Constructor NewManager
+// New constructor Manager
 func New(cf *config.Config, apiResponse response.ApiResponse, v *validator.Validate, repo *repository.Repository) *Manager <span class="cov0" title="0">{
         return &amp;Manager{cf, apiResponse, v, repo}
 }</span>
 
-// Returns the ApiResponse
+// GetApiResponse returns the Api Response
 func (m *Manager) GetApiResponse() response.ApiResponse <span class="cov0" title="0">{
         return m.apiResponse
 }</span>
 
+// GetValidator returns the validator
 func (m *Manager) GetValidator() *validator.Validate <span class="cov0" title="0">{
         return m.validator
 }</span>
 
-// Returns a copy of the config
+// GetConfig returns a copy of the config
 func (m *Manager) GetConfig() config.Config <span class="cov0" title="0">{
         return *m.cf
 }</span>
 </pre>
 		
-		<pre class="file" id="file6" style="display: none">package model
+		<pre class="file" id="file6" style="display: none">// This package contains golang main models for API endpoints (input/output)
+package model
 
 import (
         "strconv"
@@ -494,6 +559,7 @@ import (
         "github.com/sirupsen/logrus"
 )
 
+// Input is '/v1/fizzbuzz' model endpoint
 type Input struct {
         Limit     int        `validate:"gt=0,lte=1000000"`
         Multiples []Multiple `validate:"gte=0,lte=2,dive"`
@@ -503,11 +569,14 @@ type Multiple struct {
         IntX int    `validate:"gt=0"`
         StrX string `validate:"required"`
 }
+
+// Output is '/v1/statistics' model endpoint
 type Output struct {
         Request Input `json:"request"`
         Hits    int   `json:"hits"`
 }
 
+// String returns data in String format
 func (input *Input) String() (val string) <span class="cov8" title="1">{
         if input == nil </span><span class="cov8" title="1">{
                 logrus.Error("input.String() : struct nil")
@@ -522,24 +591,29 @@ func (input *Input) String() (val string) <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file7" style="display: none">package repository
+		<pre class="file" id="file7" style="display: none">// This package contains all functions which interact with database
+package repository
 
 import (
         "database/sql"
 )
 
-type RepositoryFizz struct {
+// Fizz class (repository child class)
+type Fizz struct {
         *Repository
 }
 
-func NewFizzRepository(repo *Repository) *RepositoryFizz <span class="cov0" title="0">{
-        return &amp;RepositoryFizz{
+// New constructor Repository child Fizz
+func NewFizz(repo *Repository) *Fizz <span class="cov0" title="0">{
+        return &amp;Fizz{
                 repo,
         }
 
 }</span>
-func (rf *RepositoryFizz) GetMostRequestUsed() (msg string, hits int, noRows bool, err error) <span class="cov0" title="0">{
-        err = rf.db.QueryRow("SELECT MSG, count(*) as HITS FROM `MESSAGES_REQUEST` WHERE CHECKSUM IS NOT NULL AND CHECKSUM != '' GROUP BY CHECKSUM ORDER BY HITS DESC LIMIT 1;").Scan(&amp;msg, &amp;hits)
+
+// GetMostRequestUsed returns from database the most used request (if any) as well as the number of hits.
+func (rf *Fizz) GetMostRequestUsed() (msg string, hits int, noRows bool, err error) <span class="cov0" title="0">{
+        err = rf.db.GetConnector().QueryRow("SELECT MSG, count(*) as HITS FROM `MESSAGES_REQUEST` WHERE CHECKSUM IS NOT NULL AND CHECKSUM != '' GROUP BY CHECKSUM ORDER BY HITS DESC LIMIT 1;").Scan(&amp;msg, &amp;hits)
 
         if err == sql.ErrNoRows </span><span class="cov0" title="0">{
                 noRows = true
@@ -549,73 +623,72 @@ func (rf *RepositoryFizz) GetMostRequestUsed() (msg string, hits int, noRows boo
 }
 </pre>
 		
-		<pre class="file" id="file8" style="display: none">package repository
+		<pre class="file" id="file8" style="display: none">// This package contains all functions which interact with database
+package repository
 
 import (
-        "database/sql"
+        "errors"
         "os"
         "strings"
 
         cst "github.com/arckadious/fizzbuzz/constant"
-
-        "github.com/sirupsen/logrus"
+        "github.com/arckadious/fizzbuzz/database"
 )
 
+// Repository class
 type Repository struct {
-        db *sql.DB
+        db *database.DB
 }
 
-// NewRepository
-func NewRepository(Db *sql.DB) *Repository <span class="cov0" title="0">{
+// New constructor Repository
+func New(Db *database.DB) *Repository <span class="cov8" title="1">{
         return &amp;Repository{Db}
 }</span>
 
-func (r *Repository) LogToDB(logType, msg, url, corID, checksum, status string) <span class="cov0" title="0">{
-        if strings.ToUpper(logType) != "REQUEST" &amp;&amp; strings.ToUpper(logType) != "RESPONSE" </span><span class="cov0" title="0">{
-                logrus.Error("Logger coudn't audit data: Logger Type unkwown.")
-                return
-        }</span> else<span class="cov0" title="0"> if corID == "" </span><span class="cov0" title="0">{
-                logrus.Error("Logger coudn't audit data: corID empty -", corID)
-                return
+// LogToDB stores requests and responses in database.
+func (r *Repository) LogToDB(logType, msg, url, corID, checksum, status string) (err error) <span class="cov8" title="1">{
+        if corID == "" </span><span class="cov8" title="1">{
+                return errors.New("Logger coudn't audit data: corID empty")
         }</span>
 
-        <span class="cov0" title="0">hostname, _ := os.Hostname()
+        <span class="cov8" title="1">hostname, _ := os.Hostname()
         sql := ""
         vals := []interface{}{}
 
         switch strings.ToUpper(logType) </span>{
-        case "REQUEST":<span class="cov0" title="0">
+        case "REQUEST":<span class="cov8" title="1">
                 sql = "INSERT INTO `MESSAGES_REQUEST` (`MSG`, `COR_ID`, `HOST`, `APP_NAME`, `SERVICE_ADDRESS`, `CHECKSUM`) VALUES (?, ?, ?, ?, ?, ?);"
                 vals = append(vals, msg, corID, hostname, cst.AppName, url, checksum)
                 break</span>
-        case "RESPONSE":<span class="cov0" title="0">
+        case "RESPONSE":<span class="cov8" title="1">
                 sql = "INSERT INTO `MESSAGES_RESPONSE` (`MSG`, `COR_ID`, `STATUS`) VALUES (?, ?, ?);"
                 vals = append(vals, msg, corID, status)
                 break</span>
-        default:<span class="cov0" title="0">
-                logrus.Error("Logger coudn't send data: Logger Type (request,response ?) unkwown.")
-                return</span>
+        default:<span class="cov8" title="1">
+                return errors.New("Logger coudn't audit data: Logger Type unkwown.")</span>
         }
 
-        <span class="cov0" title="0">_, err := r.db.Exec(sql, vals...)
-        if err != nil </span><span class="cov0" title="0">{
-                logrus.Error("Logger coudn't send "+logType+" data: ", err)
-                return
+        <span class="cov8" title="1">_, err = r.db.GetConnector().Exec(sql, vals...)
+        if err != nil </span><span class="cov8" title="1">{
+                return errors.New("Logger coudn't send " + logType + " data: " + err.Error())
         }</span>
+        <span class="cov8" title="1">return</span>
 }
 </pre>
 		
-		<pre class="file" id="file9" style="display: none">package response
+		<pre class="file" id="file9" style="display: none">// This package contains JSON response templates functions
+package response
 
 import (
         "encoding/json"
         "net/http"
+
+        "github.com/sirupsen/logrus"
 )
 
 const (
         StatusError   = "error"
         StatusSuccess = "success"
-        StatusWarning = "warning"
 
         ErrorInvalidData         = "INVALID_DATA_ERR"
         ErrorInvalidField        = "INVALID_FIELD_ERR"
@@ -624,6 +697,7 @@ const (
         ErrorMethodNotAllowed    = "METHOD_NOT_ALLOWED_ERR"
 )
 
+// ApiResponse class
 type ApiResponse struct {
         StatusCode int         `json:"-"`
         Status     string      `json:"status"`
@@ -637,22 +711,8 @@ type ApiError struct {
         Message string `json:"message"`
 }
 
-// Constructor of the new error
-func NewApiError(code string, message string, field string) *ApiError <span class="cov0" title="0">{
-        return &amp;ApiError{
-                Code:    code,
-                Field:   field,
-                Message: message,
-        }
-}</span>
-
-// Redefine the error interface function
-func (c *ApiError) Error() string <span class="cov0" title="0">{
-        return c.Message
-}</span>
-
-// New create a new Response
-func NewApiResponse(statusCode int, status string, errorMessages []ApiError, data interface{}) *ApiResponse <span class="cov0" title="0">{
+// New constructor ApiResponse : create a new response template
+func New(statusCode int, status string, errorMessages []ApiError, data interface{}) *ApiResponse <span class="cov0" title="0">{
         return &amp;ApiResponse{
                 StatusCode: statusCode,
                 Status:     status,
@@ -661,31 +721,31 @@ func NewApiResponse(statusCode int, status string, errorMessages []ApiError, dat
         }
 }</span>
 
-// Set api response status code
+// SetStatusCode set api response status code
 func (res *ApiResponse) SetStatusCode(statusCode int) *ApiResponse <span class="cov0" title="0">{
         res.StatusCode = statusCode
         return res
 }</span>
 
-// Set api response content status
+// SetStatus set api response content status
 func (res *ApiResponse) SetStatus(status string) *ApiResponse <span class="cov0" title="0">{
         res.Status = status
         return res
 }</span>
 
-// Set api response content data
+// Setdata set api response content data
 func (res *ApiResponse) SetData(data interface{}) *ApiResponse <span class="cov0" title="0">{
         res.Data = data
         return res
 }</span>
 
-// Set api response meta data
+// SetErrorMessages set api response meta data
 func (res *ApiResponse) SetErrorMessages(messages []ApiError) *ApiResponse <span class="cov0" title="0">{
         res.Messages = messages
         return res
 }</span>
 
-// Set custom error response to be returned
+// SetCustomErrorResponse set custom error response to be returned
 func (res *ApiResponse) SetCustomErrorResponse(httpCode int, status string, messages []ApiError) *ApiResponse <span class="cov0" title="0">{
         res.SetStatusCode(httpCode)
         res.SetStatus(status)
@@ -693,56 +753,61 @@ func (res *ApiResponse) SetCustomErrorResponse(httpCode int, status string, mess
         return res
 }</span>
 
-// Set automatique bad request response
+// SetBadRequestResponse
 func (res *ApiResponse) SetBadRequestResponse(messages []ApiError) *ApiResponse <span class="cov0" title="0">{
         res.SetCustomErrorResponse(http.StatusBadRequest, StatusError, messages)
         return res
 }</span>
 
-// Set automatique forbidden response
+// SetForbiddenResponse
 func (res *ApiResponse) SetForbiddenResponse(messages []ApiError) *ApiResponse <span class="cov0" title="0">{
         res.SetCustomErrorResponse(http.StatusForbidden, StatusError, messages)
         return res
 }</span>
 
-// Set automatique bad request response
+// SetNotFoundResponse
 func (res *ApiResponse) SetNotFoundResponse(messages []ApiError) *ApiResponse <span class="cov0" title="0">{
         res.SetCustomErrorResponse(http.StatusNotFound, StatusError, messages)
         return res
 }</span>
 
-// Set automatique bad request response
+// SetInternalServerErrorResponse
 func (res *ApiResponse) SetInternalServerErrorResponse(messages []ApiError) *ApiResponse <span class="cov0" title="0">{
         res.SetCustomErrorResponse(http.StatusInternalServerError, StatusError, messages)
         return res
 }</span>
 
-// Add new error message to error list
+// AddErrorMessage add new error message to error list
 func (res *ApiResponse) AddErrorMessage(msg ApiError) <span class="cov0" title="0">{
         res.Messages = append(res.Messages, msg)
 }</span>
 
-// Returns new error struct from code and message
+// CreateErrorMessage returns new error struct from code and message
 func (res *ApiResponse) CreateErrorMessage(code string, field string, message string) ApiError <span class="cov0" title="0">{
         return ApiError{code, field, message}
 }</span>
 
+// GetErrorMessagesSLice returns an array of code with its description
 func (res *ApiResponse) GetErrorMessageSlice(code string, field string, message string) []ApiError <span class="cov0" title="0">{
         var erros []ApiError
         erros = append(erros, res.CreateErrorMessage(code, field, message))
         return erros
 }</span>
 
-// WriteJson output write json response
+// WriteJSONResponse writes json output to json response
 func (res *ApiResponse) WriteJSONResponse(w http.ResponseWriter) <span class="cov0" title="0">{
         w.Header().Set("Content-Type", "application/json")
         w.WriteHeader(res.StatusCode)
-        resp, _ := json.Marshal(res)
-        w.Write(resp)
-}</span>
+        resp, err := json.Marshal(res)
+        if err != nil </span><span class="cov0" title="0">{
+                logrus.Error(err)
+        }</span>
+        <span class="cov0" title="0">w.Write(resp)</span>
+}
 </pre>
 		
-		<pre class="file" id="file10" style="display: none">package server
+		<pre class="file" id="file10" style="display: none">// This package creates and run a rest API server, using Gin framework
+package server
 
 import (
         "bytes"
@@ -755,7 +820,6 @@ import (
         "strconv"
         "time"
 
-        cst "github.com/arckadious/fizzbuzz/constant"
         "github.com/arckadious/fizzbuzz/container"
         "github.com/arckadious/fizzbuzz/model"
         "github.com/arckadious/fizzbuzz/response"
@@ -770,6 +834,12 @@ const (
         // Timeout delay and graceful shutdown deadline
         Timeout     = time.Second * 180
         IdleTimeout = 60
+
+        FizzBaseURI       = "/fizzbuzz"
+        FizzStatisticsURI = "/statistics"
+
+        URLPrefixVersion = "/v1"
+        Scheme           = "http"
 )
 
 type bodyLogWriter struct {
@@ -782,12 +852,12 @@ func (w bodyLogWriter) Write(b []byte) (int, error) <span class="cov0" title="0"
         return w.ResponseWriter.Write(b)
 }</span>
 
-// Server httpServer struct
+// Server class
 type Server struct {
         container *container.Container
 }
 
-// New create server
+// New constructor Server
 func New(cntnr *container.Container) *Server <span class="cov0" title="0">{
         return &amp;Server{
                 container: cntnr,
@@ -818,8 +888,11 @@ func (s *Server) Run() <span class="cov0" title="0">{
                 }</span>
         }()
 
+        // Shutdown Database connections gracefully
+        <span class="cov0" title="0">defer s.container.Db.Shutdown()
+
         // Process signals channel
-        <span class="cov0" title="0">sigChannel := make(chan os.Signal, 1)
+        sigChannel := make(chan os.Signal, 1)
 
         // Graceful shutdown via SIGINT
         signal.Notify(sigChannel, os.Interrupt)
@@ -835,6 +908,7 @@ func (s *Server) Run() <span class="cov0" title="0">{
         logrus.Warn("Server shutdown")</span>
 }
 
+// Handler configures all endpoints and middlewares with Gin
 func (s *Server) Handler() *gin.Engine <span class="cov0" title="0">{
 
         router := gin.New()
@@ -855,7 +929,7 @@ func (s *Server) Handler() *gin.Engine <span class="cov0" title="0">{
                 s.methodNotAllowedHandler(c.Writer, c.Request)
         }</span>))
 
-        //documentation de l'api (exclu du loggerMiddleware)
+        //api doc (excluded from loggerMiddleware)
         <span class="cov0" title="0">router.Static("/swagger", "./swaggerui")
 
         loggerRouter := router.Group("")
@@ -867,13 +941,13 @@ func (s *Server) Handler() *gin.Engine <span class="cov0" title="0">{
         }</span>)
 
         //api subrouter v1
-        <span class="cov0" title="0">v1 := loggerRouter.Group(cst.URLPrefixVersion)
+        <span class="cov0" title="0">v1 := loggerRouter.Group(URLPrefixVersion)
 
         //fizzbuzz routes
-        v1.POST(cst.FizzBaseURI, func(c *gin.Context) </span><span class="cov0" title="0">{
+        v1.POST(FizzBaseURI, func(c *gin.Context) </span><span class="cov0" title="0">{
                 s.container.FizzAction.HandleFizz(c.Writer, c.Request)
         }</span>)
-        <span class="cov0" title="0">v1.GET(cst.FizzStatisticsURI, func(c *gin.Context) </span><span class="cov0" title="0">{
+        <span class="cov0" title="0">v1.GET(FizzStatisticsURI, func(c *gin.Context) </span><span class="cov0" title="0">{
                 s.container.FizzAction.HandleStatistics(c.Writer, c.Request)
         }</span>)
 
@@ -881,50 +955,50 @@ func (s *Server) Handler() *gin.Engine <span class="cov0" title="0">{
 
 }
 
-// notFoundHandler
+// notFoundHandler handles API server response when endpoint couldn't be found
 func (s *Server) notFoundHandler(w http.ResponseWriter, r *http.Request) <span class="cov0" title="0">{
 
         w.Header().Set("Content-Type", "application/json")
 
-        res := response.NewApiResponse(http.StatusNotFound, response.StatusError, make([]response.ApiError, 0), nil)
+        res := response.New(http.StatusNotFound, response.StatusError, make([]response.ApiError, 0), nil)
         res.SetErrorMessages(res.GetErrorMessageSlice(response.ErrorRouteNotFound, "", "Route Not Found."))
         res.WriteJSONResponse(w)
 
         return
 }</span>
 
-// panicRecoveryHandler (in case of 'panic' call during process, return a custom 500 internal server error instead of nothing.)
+// panicRecoveryHandler : in case of unexpected 'panic' call during process, return a custom 500 internal server error instead of nothing.
 func (s *Server) panicRecoveryHandler(w http.ResponseWriter, r *http.Request) <span class="cov0" title="0">{
 
         w.Header().Set("Content-Type", "application/json")
 
         gin.Recovery()
 
-        res := response.NewApiResponse(http.StatusInternalServerError, response.StatusError, make([]response.ApiError, 0), nil)
+        res := response.New(http.StatusInternalServerError, response.StatusError, make([]response.ApiError, 0), nil)
         res.SetErrorMessages(res.GetErrorMessageSlice(response.ErrorInternalServerError, "", "Internal Server Error"))
         res.WriteJSONResponse(w)
 
         return
 }</span>
 
-// methodNotAllowedHandler
+// methodNotAllowedHandler handles API server response when endpoint method is not allowed
 func (s *Server) methodNotAllowedHandler(w http.ResponseWriter, r *http.Request) <span class="cov0" title="0">{
 
         w.Header().Set("Content-Type", "application/json")
 
-        res := response.NewApiResponse(http.StatusMethodNotAllowed, response.StatusError, make([]response.ApiError, 0), nil)
+        res := response.New(http.StatusMethodNotAllowed, response.StatusError, make([]response.ApiError, 0), nil)
         res.SetErrorMessages(res.GetErrorMessageSlice(response.ErrorMethodNotAllowed, "", "Method is not allowed."))
         res.WriteJSONResponse(w)
 
         return
 }</span>
 
-// audit requests and response to DB
+// Logger send requests and response to database, and generate checksum if needed
 func (s *Server) Logger() gin.HandlerFunc <span class="cov0" title="0">{
         return func(c *gin.Context) </span><span class="cov0" title="0">{
 
                 //Generate unique ID to make link between request and its associated response (stored in a different table)
-                corID, _ := util.GenerateUUID()
+                corID, _ := util.GenerateUID()
 
                 body, err := util.ExtractBody(c.Request)
                 if err != nil </span><span class="cov0" title="0">{
@@ -935,25 +1009,38 @@ func (s *Server) Logger() gin.HandlerFunc <span class="cov0" title="0">{
                 //Create a checksum for the current request, only if it's the main endpoint (/fizzbuzz) and data is valid.
                 <span class="cov0" title="0">var data model.Input
                 checksum := ""
-                if c.Request.RequestURI == cst.URLPrefixVersion+cst.FizzBaseURI &amp;&amp; json.Unmarshal(body, &amp;data) == nil &amp;&amp; s.container.Validator.Struct(data) == nil </span><span class="cov0" title="0">{
+                if c.Request.RequestURI == URLPrefixVersion+FizzBaseURI &amp;&amp; json.Unmarshal(body, &amp;data) == nil &amp;&amp; s.container.Validator.Struct(data) == nil </span><span class="cov0" title="0">{
                         checksum = util.GetMD5Hash(data.String())
                 }</span>
 
-                <span class="cov0" title="0">go s.container.Repo.LogToDB("request", string(body), cst.Scheme+"://"+path.Join(c.Request.Host, c.Request.RequestURI), corID, checksum, "")
+                // Create copy to be used inside the goroutine - See Gin documentation : https://gin-gonic.com/docs/examples/goroutines-inside-a-middleware/
+                <span class="cov0" title="0">cCp := c.Copy()
+
+                go func() </span><span class="cov0" title="0">{
+                        if err := s.container.Repo.LogToDB("request", string(body), Scheme+"://"+path.Join(cCp.Request.Host, cCp.Request.RequestURI), corID, checksum, ""); err != nil </span><span class="cov0" title="0">{
+                                logrus.Error(err)
+                        }</span>
+                }()
 
                 // Intercept Writer in order to get response body
-                blw := &amp;bodyLogWriter{body: bytes.NewBufferString(""), ResponseWriter: c.Writer}
+                <span class="cov0" title="0">blw := &amp;bodyLogWriter{body: bytes.NewBufferString(""), ResponseWriter: c.Writer}
                 c.Writer = blw
 
                 c.Next()
 
-                go s.container.Repo.LogToDB("response", blw.body.String(), "", corID, checksum, strconv.Itoa(c.Writer.Status()))</span>
-
+                status := blw.Status()
+                respBody := blw.body.String()
+                go func() </span><span class="cov0" title="0">{
+                        if err := s.container.Repo.LogToDB("response", respBody, "", corID, checksum, strconv.Itoa(status)); err != nil </span><span class="cov0" title="0">{
+                                logrus.Error(err)
+                        }</span>
+                }()
         }
 }
 </pre>
 		
-		<pre class="file" id="file11" style="display: none">package util
+		<pre class="file" id="file11" style="display: none">// This package contains various useful tools like MD5 Hash and http body extract
+package util
 
 import (
         "bytes"
@@ -966,7 +1053,8 @@ import (
         "net/http"
 )
 
-func GenerateUUID() (uuid string, err error) <span class="cov8" title="1">{
+// GenerateUID creates a unique ID (used to make a corelation between http requests and responses in database)
+func GenerateUID() (uuid string, err error) <span class="cov8" title="1">{
         b := make([]byte, 16)
         _, err = rand.Read(b)
         if err != nil </span><span class="cov0" title="0">{
@@ -977,6 +1065,7 @@ func GenerateUUID() (uuid string, err error) <span class="cov8" title="1">{
         <span class="cov8" title="1">return</span>
 }
 
+// ExtractBody extracts a copy of http request body
 func ExtractBody(r *http.Request) (body []byte, err error) <span class="cov8" title="1">{
         if r == nil </span><span class="cov8" title="1">{
                 err = errors.New("Extract body : request nil")
@@ -990,7 +1079,7 @@ func ExtractBody(r *http.Request) (body []byte, err error) <span class="cov8" ti
         return</span>
 }
 
-// GetMD5Hash return MD5 from text
+// GetMD5Hash return MD5 hash from text
 func GetMD5Hash(text string) string <span class="cov8" title="1">{
         hasher := md5.New()
         hasher.Write([]byte(text))

@@ -41,7 +41,7 @@ func New(cf *config.Config) *DB {
 func (db *DB) GetConnector() *sql.DB {
 	err := db.dbConnector.Ping() // Ensure that a connection to the database is still alive, establishing a connection if necessary.
 	if err != nil {
-		logrus.Error(err)
+		logrus.Error("GetConnector MySQL: ", err)
 	}
 	return db.dbConnector
 }

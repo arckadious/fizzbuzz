@@ -161,6 +161,8 @@ Fizzbuzz API uses a logger middleware, which send requests and responses to a My
 
 Using local database, you can see these logs at phpmyadmin.localhost:8080. Requests and responses are separated in two tables, and bound by a "COR_ID".
 
+> Phpmyadmin authentication : Login : root / Password : root
+
 ````sql
 -- SQL Left Join example to use the COR_ID bind
 SELECT APP_NAME, STATUS, SERVICE_ADDRESS, HOST, mr.MSG as REQUEST,

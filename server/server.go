@@ -205,7 +205,14 @@ func (s *Server) Logger() gin.HandlerFunc {
 			checksum = util.GetMD5Hash(data.String())
 		}
 
-		go s.container.Repo.LogToDB("request", string(body), Scheme+"://"+path.Join(c.Request.Host, c.Request.RequestURI), corID, checksum, "")
+		// Create copy to be used inside the goroutine - See Gin documentation : https://gin-gonic.com/docs/examples/goroutines-inside-a-middleware/
+		cCp := c.Copy()
+
+		go func() {
+			if err := s.container.Repo.LogToDB("request", string(body), Scheme+"://"+path.Join(cCp.Request.Host, cCp.Request.RequestURI), corID, checksum, ""); err != nil {
+				logrus.Error(err)
+			}
+		}()
 
 		// Intercept Writer in order to get response body
 		blw := &bodyLogWriter{body: bytes.NewBufferString(""), ResponseWriter: c.Writer}
@@ -213,7 +220,12 @@ func (s *Server) Logger() gin.HandlerFunc {
 
 		c.Next()
 
-		go s.container.Repo.LogToDB("response", blw.body.String(), "", corID, checksum, strconv.Itoa(c.Writer.Status()))
-
+		status := blw.Status()
+		respBody := blw.body.String()
+		go func() {
+			if err := s.container.Repo.LogToDB("response", respBody, "", corID, checksum, strconv.Itoa(status)); err != nil {
+				logrus.Error(err)
+			}
+		}()
 	}
 }

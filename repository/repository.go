@@ -2,13 +2,12 @@
 package repository
 
 import (
+	"errors"
 	"os"
 	"strings"
 
 	cst "github.com/arckadious/fizzbuzz/constant"
 	"github.com/arckadious/fizzbuzz/database"
-
-	"github.com/sirupsen/logrus"
 )
 
 // Repository class
@@ -21,14 +20,10 @@ func New(Db *database.DB) *Repository {
 	return &Repository{Db}
 }
 
-// LogToDB store requests and responses in database.
-func (r *Repository) LogToDB(logType, msg, url, corID, checksum, status string) {
-	if strings.ToUpper(logType) != "REQUEST" && strings.ToUpper(logType) != "RESPONSE" {
-		logrus.Error("Logger coudn't audit data: Logger Type unkwown.")
-		return
-	} else if corID == "" {
-		logrus.Error("Logger coudn't audit data: corID empty -", corID)
-		return
+// LogToDB stores requests and responses in database.
+func (r *Repository) LogToDB(logType, msg, url, corID, checksum, status string) (err error) {
+	if corID == "" {
+		return errors.New("Logger coudn't audit data: corID empty")
 	}
 
 	hostname, _ := os.Hostname()
@@ -45,13 +40,12 @@ func (r *Repository) LogToDB(logType, msg, url, corID, checksum, status string) 
 		vals = append(vals, msg, corID, status)
 		break
 	default:
-		logrus.Error("Logger coudn't send data: Logger Type (request,response ?) unkwown.")
-		return
+		return errors.New("Logger coudn't audit data: Logger Type unkwown.")
 	}
 
-	_, err := r.db.GetConnector().Exec(sql, vals...)
+	_, err = r.db.GetConnector().Exec(sql, vals...)
 	if err != nil {
-		logrus.Error("Logger coudn't send "+logType+" data: ", err)
-		return
+		return errors.New("Logger coudn't send " + logType + " data: " + err.Error())
 	}
+	return
 }
