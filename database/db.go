@@ -58,7 +58,7 @@ func (db *DB) Shutdown() {
 	}
 }
 
-// connect establish connection between API and database
+// connect establishes connection between API and database
 func (db *DB) connect() (dbConnector *sql.DB, err error) {
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=%s&parseTime=true&timeout=%ds",
 		db.cf.Database.Username,
