@@ -55,7 +55,7 @@ Golang 1.19+
 |-------------------------------|-----------------------------|--------|
 |Gin|github.com/gin-gonic/gin|v1.9.0|
 |Go playground validator|github.com/go-playground/validator/v10|v10.12.0|
-|MySQL Go driver|github.com/go-sql-driver/mysql|v1.6.0|
+|MySQL Go driver|github.com/go-sql-driver/mysql|v1.7.0|
 |Logrus|github.com/sirupsen/logrus|v1.9.0|
 |Testify|github.com/stretchr/testify|v1.8.2|
 
