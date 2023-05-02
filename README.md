@@ -192,16 +192,17 @@ Gin Framework log each request sent to fizzbuzz API.
 
 Local tools are available to make yourself comfortable :
 
-- Local MySQL database + phpmyadmin web interface.
+- Local MySQL database
+- Phpmyadmin web interface (bound with the local DB).
 - Dozzle (log and memory monitoring for all containers).
-- Swagger Web interface.
+- Swagger interface from API '/swagger' endpoint (API need to be up).
 
 | ENV |URL|
 |---|--|
-|Swagger| <http://swagger.localhost:8080>
 |Phpmyadmin| <http://phpmyadmin.localhost:8080>
 |Dozzle (logs)| <http://dozzle.localhost:8080>
 |API Go| <http://api.localhost:8080>
+|Swagger| <http://api.localhost:8080/swagger>
 
 > For more details, see [nginx.conf](nginx.conf) and [Docker-compose.yml](docker-compose.yml)
 
@@ -227,7 +228,7 @@ Local tools are available to make yourself comfortable :
 
 - /swagger
 
-> Swagger Documentation available from the api. Also available from swagger.localhost:8080.
+> Swagger Documentation available from the api.
 
 <http://api.localhost:8080/swagger>
 
