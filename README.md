@@ -46,7 +46,7 @@ Golang 1.19+
 
 ### Local Requirements
 
-- [docker v23.0.5](https://docs.docker.com/installation/)
+- [docker v23.0.5+](https://docs.docker.com/installation/)
 - make
 
 ## :package: Dependencies

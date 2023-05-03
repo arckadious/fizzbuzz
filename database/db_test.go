@@ -10,13 +10,20 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestConnect(t *testing.T) {
+func TestDB(t *testing.T) {
+
+	assert := assert.New(t)
+
+	///////////////////////
+	// DB.GetConnector() //
+	///////////////////////
+
 	cf, err := config.New("../tests/mock/parametersOK.json", *validator.New())
-	assert.Equal(t, nil, err)
+	assert.NoError(err)
 
 	db := New(cf)
-	assert.NotEqual(t, nil, db)
-	assert.NotEqual(t, nil, db.GetConnector()) //check if it's nil value //TO DO
+	assert.NotEqual(nil, db)
+	assert.NotEqual(nil, db.GetConnector()) //check if it's nil value //TO DO
 	db.Shutdown()
 
 	//db.connect() // mock test to do

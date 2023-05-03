@@ -6,7 +6,12 @@ import (
 	"testing"
 )
 
-func TestString(t *testing.T) {
+func TestModel(t *testing.T) {
+
+	////////////////////
+	// Input.String() //
+	////////////////////
+
 	var tests = []struct {
 		name string
 		i    *Input
