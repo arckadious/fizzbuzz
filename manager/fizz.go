@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"strings"
 
+	cst "github.com/arckadious/fizzbuzz/constant"
+
 	"github.com/arckadious/fizzbuzz/model"
 	"github.com/arckadious/fizzbuzz/repository"
 	"github.com/arckadious/fizzbuzz/response"
@@ -62,17 +64,18 @@ func (m *Fizz) HandleStatistics(w http.ResponseWriter) {
 	msg, hits, noRows, err := m.repoFizz.GetMostRequestUsed()
 	if err != nil {
 		if noRows { // Database does not contain rows with checksum not empty
-			res.SetStatusCode(http.StatusPartialContent).WriteJSONResponse(w)
+			res.StatusCode = http.StatusPartialContent
+			res.WriteJSONResponse(w)
 			return
 		}
-		res.SetInternalServerErrorResponse([]response.ApiError{{Code: response.ErrorInternalServerError, Message: err.Error()}}).WriteJSONResponse(w)
+		res.SetErrorResponse(http.StatusInternalServerError, []response.ApiError{{Code: cst.ErrorInternalServerError, Message: err.Error()}}).WriteJSONResponse(w)
 		return
 	}
 
 	var msgStruct model.Input
 	err = json.Unmarshal([]byte(msg), &msgStruct)
 	if err != nil {
-		res.SetInternalServerErrorResponse([]response.ApiError{{Code: response.ErrorInternalServerError, Message: err.Error()}}).WriteJSONResponse(w)
+		res.SetErrorResponse(http.StatusInternalServerError, []response.ApiError{{Code: cst.ErrorInternalServerError, Message: err.Error()}}).WriteJSONResponse(w)
 		return
 	}
 

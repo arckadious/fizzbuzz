@@ -2,10 +2,8 @@
 package config
 
 import (
-	"os"
 	"testing"
 
-	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/stretchr/testify/assert"
 )
@@ -31,13 +29,6 @@ func TestConfig(t *testing.T) {
 	if assert.Error(err) {
 		assert.Equal("invalid character '/' looking for beginning of value", err.Error())
 	}
-
-	//Gin debug mode
-	_, err = New("../tests/mock/parameters-gindebug.json", *validator.New())
-	assert.NoError(err)
-	assert.Equal("debug", gin.Mode())
-	err = os.Remove("gin.log")
-	assert.NoError(err)
 
 	//config validation failed
 	_, err = New("../tests/mock/parameters-wrongvalue.json", *validator.New())

@@ -11,20 +11,22 @@ import (
 	"github.com/arckadious/fizzbuzz/validator"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestRepository(t *testing.T) {
 
+	assert := assert.New(t)
+	require := require.New(t)
+	cf, err := config.New("../tests/mock/parametersOK.json", *validator.New())
+	require.NoError(err)
+	db := database.New(cf)
+	repo := New(db)
+	require.NotEqual(nil, repo)
+
 	//////////////////////////
 	// Repository.LogToDB() //
 	//////////////////////////
-
-	assert := assert.New(t)
-	cf, err := config.New("../tests/mock/parametersOK.json", *validator.New())
-	assert.NoError(err)
-	db := database.New(cf)
-	repo := New(db)
-	assert.NotEqual(nil, repo)
 
 	// empty parameter corID
 	if err = repo.LogToDB("", "", "", "", "", ""); assert.Error(err) {
@@ -37,7 +39,7 @@ func TestRepository(t *testing.T) {
 	}
 
 	// send simple request and response
-	assert.NoError(repo.LogToDB("REQUEST", "", "", "test", "", ""))
+	require.NoError(repo.LogToDB("REQUEST", "", "", "test", "", ""))
 	assert.NoError(repo.LogToDB("RESPONSE", "", "", "test", "", ""))
 
 	// check rows, validate host = os.hostname, APP_NAME=fizzbuzz

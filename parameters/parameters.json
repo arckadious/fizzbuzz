@@ -1,6 +1,6 @@
 {
     "port": 8000,
-    "env": "localhost",
+    "env": "dev",
     "level": "info",
     "database": {
         "adapter": "mysql",

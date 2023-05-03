@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestModel(t *testing.T) {
+func TestEndpoint(t *testing.T) {
 
 	////////////////////
 	// Input.String() //

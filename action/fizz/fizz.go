@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"net/http"
 
+	cst "github.com/arckadious/fizzbuzz/constant"
+
 	"github.com/arckadious/fizzbuzz/manager"
 	"github.com/arckadious/fizzbuzz/model"
 	"github.com/arckadious/fizzbuzz/response"
@@ -30,13 +32,13 @@ func (ac *FizzAction) HandleFizz(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	err := json.NewDecoder(r.Body).Decode(&input)
 	if err != nil {
-		res.SetBadRequestResponse([]response.ApiError{{Code: response.ErrorInvalidData, Message: "Data JSON input bad format."}}).WriteJSONResponse(w)
+		res.SetErrorResponse(http.StatusBadRequest, []response.ApiError{{Code: cst.ErrorInvalidData, Message: "Data JSON input bad format."}}).WriteJSONResponse(w)
 		return
 	}
 
 	//Validate input
 	if err := ac.mng.GetValidator().Struct(input); err != nil {
-		res.SetBadRequestResponse([]response.ApiError{{Code: response.ErrorInvalidField, Message: err.Error()}}).WriteJSONResponse(w)
+		res.SetErrorResponse(http.StatusBadRequest, []response.ApiError{{Code: cst.ErrorInvalidField, Message: err.Error()}}).WriteJSONResponse(w)
 		return
 	}
 

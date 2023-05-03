@@ -7,12 +7,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/sirupsen/logrus"
 )
 
-// Config class contains project general configuration
+// Config class contains general project configuration
 type Config struct {
 	Env      string `validate:"required,oneof='localhost' 'dev' 'rct' 'prod' 'develop' 'recette' 'production'"`
 	Level    string `validate:"required,oneof='trace' 'debug' 'info' 'warning' 'warn' 'error' 'fatal' 'panic'"`
@@ -102,19 +101,6 @@ func New(fileName string, validator validator.Validate) (c *Config, err error) {
 		logrus.SetLevel(level)
 	} else {
 		logrus.SetLevel(logrus.DebugLevel)
-	}
-
-	//Set Gin mode
-	if c.Env != "localhost" {
-		gin.SetMode(gin.ReleaseMode)
-	} else {
-		gin.SetMode(gin.DebugMode)
-		var f *os.File
-		f, err = os.OpenFile("gin.log", os.O_APPEND|os.O_CREATE|os.O_RDWR, 0644)
-		if err != nil {
-			return
-		}
-		gin.DefaultWriter = f
 	}
 
 	//validate fields from config

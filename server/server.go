@@ -12,6 +12,8 @@ import (
 	"strconv"
 	"time"
 
+	cst "github.com/arckadious/fizzbuzz/constant"
+
 	"github.com/arckadious/fizzbuzz/container"
 	"github.com/arckadious/fizzbuzz/model"
 	"github.com/arckadious/fizzbuzz/response"
@@ -72,7 +74,7 @@ func (s *Server) Run() {
 		WriteTimeout: Timeout,
 		ReadTimeout:  Timeout,
 		IdleTimeout:  IdleTimeout,
-		Handler:      s.Handler(),
+		Handler:      s.handler(),
 	}
 	go func() {
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
@@ -100,26 +102,10 @@ func (s *Server) Run() {
 	logrus.Warn("Server shutdown")
 }
 
-// Handler configures all endpoints and middlewares with Gin
-func (s *Server) Handler() *gin.Engine {
+// handler configures gin and set all REST API endpoints
+func (s *Server) handler() *gin.Engine {
 
-	router := gin.New()
-	router.HandleMethodNotAllowed = true
-
-	if s.container.Conf.Env == "localhost" {
-		router.Use(gin.Logger()) //debug logger local development
-	}
-
-	router.Use(gin.CustomRecovery(func(c *gin.Context, err interface{}) {
-		logrus.Error(err)
-		s.panicRecoveryHandler(c.Writer, c.Request)
-	}))
-	router.NoRoute(gin.HandlerFunc(func(c *gin.Context) {
-		s.notFoundHandler(c.Writer, c.Request)
-	}))
-	router.NoMethod(gin.HandlerFunc(func(c *gin.Context) {
-		s.methodNotAllowedHandler(c.Writer, c.Request)
-	}))
+	router := s.configureGin()
 
 	//api doc (excluded from loggerMiddleware)
 	router.Static("/swagger", "./swaggerui")
@@ -147,42 +133,72 @@ func (s *Server) Handler() *gin.Engine {
 
 }
 
-// notFoundHandler handles API server response when endpoint couldn't be found
-func (s *Server) notFoundHandler(w http.ResponseWriter, r *http.Request) {
+// configureGin set gin configuration.
+func (s *Server) configureGin() *gin.Engine {
 
-	w.Header().Set("Content-Type", "application/json")
+	//Middlewares for Gin
+	middlewares := []gin.HandlerFunc{}
 
-	res := response.New(http.StatusNotFound, response.StatusError, make([]response.ApiError, 0), nil)
-	res.SetErrorMessages(res.GetErrorMessageSlice(response.ErrorRouteNotFound, "", "Route Not Found."))
-	res.WriteJSONResponse(w)
+	//Set Gin mode
+	if s.container.Conf.Env != "localhost" {
+		gin.SetMode(gin.ReleaseMode)
+	} else {
+		gin.SetMode(gin.DebugMode)
+		middlewares = append(middlewares, gin.Logger()) //debug logger local development
+		var f *os.File
+		f, err := os.OpenFile("gin.log", os.O_APPEND|os.O_CREATE|os.O_RDWR, 0644)
+		if err != nil {
+			logrus.Fatal(err)
+		}
+		gin.DefaultWriter = f
+	}
 
-	return
-}
+	router := gin.New()
+	router.HandleMethodNotAllowed = true
 
-// panicRecoveryHandler : in case of unexpected 'panic' call during process, return a custom 500 internal server error instead of nothing.
-func (s *Server) panicRecoveryHandler(w http.ResponseWriter, r *http.Request) {
+	// CustomRecovery handles unexpected 'panic' call during process, and return a custom 500 internal server error.
+	middlewares = append(middlewares, gin.CustomRecovery(func(c *gin.Context, err interface{}) {
+		logrus.Error(err)
+		response.New(
+			http.StatusInternalServerError,
+			cst.StatusError,
+			[]response.ApiError{
+				{
+					Code:    cst.ErrorInternalServerError,
+					Message: "Internal Server Error, oups !",
+				},
+			}, nil).WriteJSONResponse(c.Writer)
+	}))
 
-	w.Header().Set("Content-Type", "application/json")
+	// NoRoute handles API server response when endpoint couldn't be found
+	router.NoRoute(gin.HandlerFunc(func(c *gin.Context) {
+		response.New(
+			http.StatusNotFound,
+			cst.StatusError,
+			[]response.ApiError{
+				{
+					Code:    cst.ErrorRouteNotFound,
+					Message: "Route Endpoint Not Found.",
+				},
+			}, nil).WriteJSONResponse(c.Writer)
+	}))
 
-	gin.Recovery()
+	// NoMethod handles API server response when endpoint method is not allowed
+	router.NoMethod(gin.HandlerFunc(func(c *gin.Context) {
+		response.New(
+			http.StatusMethodNotAllowed,
+			cst.StatusError,
+			[]response.ApiError{
+				{
+					Code:    cst.ErrorMethodNotAllowed,
+					Message: "Method is not allowed, boy.",
+				},
+			}, nil).WriteJSONResponse(c.Writer)
+	}))
 
-	res := response.New(http.StatusInternalServerError, response.StatusError, make([]response.ApiError, 0), nil)
-	res.SetErrorMessages(res.GetErrorMessageSlice(response.ErrorInternalServerError, "", "Internal Server Error"))
-	res.WriteJSONResponse(w)
+	router.Use(middlewares...)
 
-	return
-}
-
-// methodNotAllowedHandler handles API server response when endpoint method is not allowed
-func (s *Server) methodNotAllowedHandler(w http.ResponseWriter, r *http.Request) {
-
-	w.Header().Set("Content-Type", "application/json")
-
-	res := response.New(http.StatusMethodNotAllowed, response.StatusError, make([]response.ApiError, 0), nil)
-	res.SetErrorMessages(res.GetErrorMessageSlice(response.ErrorMethodNotAllowed, "", "Method is not allowed."))
-	res.WriteJSONResponse(w)
-
-	return
+	return router
 }
 
 // Logger send requests and response to database, and generate checksum if needed

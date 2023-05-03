@@ -31,8 +31,3 @@ func (m *Manager) GetApiResponse() response.ApiResponse {
 func (m *Manager) GetValidator() *validator.Validate {
 	return m.validator
 }
-
-// GetConfig returns a copy of the config
-func (m *Manager) GetConfig() config.Config {
-	return *m.cf
-}

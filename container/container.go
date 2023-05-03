@@ -7,6 +7,8 @@ import (
 
 	"net/http"
 
+	cst "github.com/arckadious/fizzbuzz/constant"
+
 	"github.com/arckadious/fizzbuzz/config"
 	"github.com/arckadious/fizzbuzz/database"
 	"github.com/arckadious/fizzbuzz/manager"
@@ -45,7 +47,7 @@ func (c *Container) setActions() *Container {
 	// Default API Response is always set to HTTP status 200
 	resp := response.ApiResponse{
 		StatusCode: http.StatusOK,
-		Status:     response.StatusSuccess,
+		Status:     cst.StatusSuccess,
 		Messages:   make([]response.ApiError, 0),
 	}
 

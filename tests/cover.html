@@ -57,7 +57,7 @@
 				
 				<option value="file0">github.com/arckadious/fizzbuzz/action/fizz/fizz.go (0.0%)</option>
 				
-				<option value="file1">github.com/arckadious/fizzbuzz/config/config.go (90.0%)</option>
+				<option value="file1">github.com/arckadious/fizzbuzz/config/config.go (90.6%)</option>
 				
 				<option value="file2">github.com/arckadious/fizzbuzz/container/container.go (100.0%)</option>
 				
@@ -152,7 +152,6 @@ import (
         "strings"
         "time"
 
-        "github.com/gin-gonic/gin"
         "github.com/go-playground/validator/v10"
         "github.com/sirupsen/logrus"
 )
@@ -248,19 +247,6 @@ func New(fileName string, validator validator.Validate) (c *Config, err error) <
         }</span> else<span class="cov0" title="0"> {
                 logrus.SetLevel(logrus.DebugLevel)
         }</span>
-
-        //Set Gin mode
-        <span class="cov8" title="1">if c.Env != "localhost" </span><span class="cov8" title="1">{
-                gin.SetMode(gin.ReleaseMode)
-        }</span> else<span class="cov8" title="1"> {
-                gin.SetMode(gin.DebugMode)
-                var f *os.File
-                f, err = os.OpenFile("gin.log", os.O_APPEND|os.O_CREATE|os.O_RDWR, 0644)
-                if err != nil </span><span class="cov0" title="0">{
-                        return
-                }</span>
-                <span class="cov8" title="1">gin.DefaultWriter = f</span>
-        }
 
         //validate fields from config
         <span class="cov8" title="1">if err = validator.Struct(c); err != nil </span><span class="cov8" title="1">{
@@ -491,7 +477,8 @@ func (m *Fizz) HandleStatistics(w http.ResponseWriter) <span class="cov0" title=
         msg, hits, noRows, err := m.repoFizz.GetMostRequestUsed()
         if err != nil </span><span class="cov0" title="0">{
                 if noRows </span><span class="cov0" title="0">{ // Database does not contain rows with checksum not empty
-                        res.SetStatusCode(http.StatusPartialContent).WriteJSONResponse(w)
+                        res.StatusCode = http.StatusPartialContent
+                        res.WriteJSONResponse(w)
                         return
                 }</span>
                 <span class="cov0" title="0">res.SetInternalServerErrorResponse([]response.ApiError{{Code: response.ErrorInternalServerError, Message: err.Error()}}).WriteJSONResponse(w)
@@ -721,35 +708,17 @@ func New(statusCode int, status string, errorMessages []ApiError, data interface
         }
 }</span>
 
-// SetStatusCode set api response status code
-func (res *ApiResponse) SetStatusCode(statusCode int) *ApiResponse <span class="cov0" title="0">{
-        res.StatusCode = statusCode
-        return res
-}</span>
-
-// SetStatus set api response content status
-func (res *ApiResponse) SetStatus(status string) *ApiResponse <span class="cov0" title="0">{
-        res.Status = status
-        return res
-}</span>
-
 // Setdata set api response content data
 func (res *ApiResponse) SetData(data interface{}) *ApiResponse <span class="cov0" title="0">{
         res.Data = data
         return res
 }</span>
 
-// SetErrorMessages set api response meta data
-func (res *ApiResponse) SetErrorMessages(messages []ApiError) *ApiResponse <span class="cov0" title="0">{
-        res.Messages = messages
-        return res
-}</span>
-
 // SetCustomErrorResponse set custom error response to be returned
-func (res *ApiResponse) SetCustomErrorResponse(httpCode int, status string, messages []ApiError) *ApiResponse <span class="cov0" title="0">{
-        res.SetStatusCode(httpCode)
-        res.SetStatus(status)
-        res.SetErrorMessages(messages)
+func (res *ApiResponse) SetCustomErrorResponse(statusCode int, status string, messages []ApiError) *ApiResponse <span class="cov0" title="0">{
+        res.StatusCode = statusCode
+        res.Status = status
+        res.Messages = messages
         return res
 }</span>
 
@@ -780,18 +749,6 @@ func (res *ApiResponse) SetInternalServerErrorResponse(messages []ApiError) *Api
 // AddErrorMessage add new error message to error list
 func (res *ApiResponse) AddErrorMessage(msg ApiError) <span class="cov0" title="0">{
         res.Messages = append(res.Messages, msg)
-}</span>
-
-// CreateErrorMessage returns new error struct from code and message
-func (res *ApiResponse) CreateErrorMessage(code string, field string, message string) ApiError <span class="cov0" title="0">{
-        return ApiError{code, field, message}
-}</span>
-
-// GetErrorMessagesSLice returns an array of code with its description
-func (res *ApiResponse) GetErrorMessageSlice(code string, field string, message string) []ApiError <span class="cov0" title="0">{
-        var erros []ApiError
-        erros = append(erros, res.CreateErrorMessage(code, field, message))
-        return erros
 }</span>
 
 // WriteJSONResponse writes json output to json response
@@ -880,7 +837,7 @@ func (s *Server) Run() <span class="cov0" title="0">{
                 WriteTimeout: Timeout,
                 ReadTimeout:  Timeout,
                 IdleTimeout:  IdleTimeout,
-                Handler:      s.Handler(),
+                Handler:      s.handler(),
         }
         go func() </span><span class="cov0" title="0">{
                 if err := server.ListenAndServe(); err != nil &amp;&amp; err != http.ErrServerClosed </span><span class="cov0" title="0">{
@@ -908,29 +865,13 @@ func (s *Server) Run() <span class="cov0" title="0">{
         logrus.Warn("Server shutdown")</span>
 }
 
-// Handler configures all endpoints and middlewares with Gin
-func (s *Server) Handler() *gin.Engine <span class="cov0" title="0">{
+// handler configures gin and set all REST API endpoints
+func (s *Server) handler() *gin.Engine <span class="cov0" title="0">{
 
-        router := gin.New()
-        router.HandleMethodNotAllowed = true
-
-        if s.container.Conf.Env == "localhost" </span><span class="cov0" title="0">{
-                router.Use(gin.Logger()) //debug logger local development
-        }</span>
-
-        <span class="cov0" title="0">router.Use(gin.CustomRecovery(func(c *gin.Context, err interface{}) </span><span class="cov0" title="0">{
-                logrus.Error(err)
-                s.panicRecoveryHandler(c.Writer, c.Request)
-        }</span>))
-        <span class="cov0" title="0">router.NoRoute(gin.HandlerFunc(func(c *gin.Context) </span><span class="cov0" title="0">{
-                s.notFoundHandler(c.Writer, c.Request)
-        }</span>))
-        <span class="cov0" title="0">router.NoMethod(gin.HandlerFunc(func(c *gin.Context) </span><span class="cov0" title="0">{
-                s.methodNotAllowedHandler(c.Writer, c.Request)
-        }</span>))
+        router := s.configureGin()
 
         //api doc (excluded from loggerMiddleware)
-        <span class="cov0" title="0">router.Static("/swagger", "./swaggerui")
+        router.Static("/swagger", "./swaggerui")
 
         loggerRouter := router.Group("")
         loggerRouter.Use(s.Logger())
@@ -955,43 +896,73 @@ func (s *Server) Handler() *gin.Engine <span class="cov0" title="0">{
 
 }
 
-// notFoundHandler handles API server response when endpoint couldn't be found
-func (s *Server) notFoundHandler(w http.ResponseWriter, r *http.Request) <span class="cov0" title="0">{
+// configureGin set gin configuration.
+func (s *Server) configureGin() *gin.Engine <span class="cov0" title="0">{
 
-        w.Header().Set("Content-Type", "application/json")
+        //Middlewares for Gin
+        middlewares := []gin.HandlerFunc{}
 
-        res := response.New(http.StatusNotFound, response.StatusError, make([]response.ApiError, 0), nil)
-        res.SetErrorMessages(res.GetErrorMessageSlice(response.ErrorRouteNotFound, "", "Route Not Found."))
-        res.WriteJSONResponse(w)
+        //Set Gin mode
+        if s.container.Conf.Env != "localhost" </span><span class="cov0" title="0">{
+                gin.SetMode(gin.ReleaseMode)
+        }</span> else<span class="cov0" title="0"> {
+                gin.SetMode(gin.DebugMode)
+                middlewares = append(middlewares, gin.Logger()) //debug logger local development
+                var f *os.File
+                f, err := os.OpenFile("gin.log", os.O_APPEND|os.O_CREATE|os.O_RDWR, 0644)
+                if err != nil </span><span class="cov0" title="0">{
+                        logrus.Fatal(err)
+                }</span>
+                <span class="cov0" title="0">gin.DefaultWriter = f</span>
+        }
 
-        return
-}</span>
+        <span class="cov0" title="0">router := gin.New()
+        router.HandleMethodNotAllowed = true
 
-// panicRecoveryHandler : in case of unexpected 'panic' call during process, return a custom 500 internal server error instead of nothing.
-func (s *Server) panicRecoveryHandler(w http.ResponseWriter, r *http.Request) <span class="cov0" title="0">{
+        // CustomRecovery handles unexpected 'panic' call during process, and return a custom 500 internal server error.
+        middlewares = append(middlewares, gin.CustomRecovery(func(c *gin.Context, err interface{}) </span><span class="cov0" title="0">{
+                logrus.Error(err)
+                response.New(
+                        http.StatusInternalServerError,
+                        response.StatusError,
+                        []response.ApiError{
+                                {
+                                        Code:    response.ErrorInternalServerError,
+                                        Message: "Internal Server Error, oups !",
+                                },
+                        }, nil).WriteJSONResponse(c.Writer)
+        }</span>))
 
-        w.Header().Set("Content-Type", "application/json")
+        // NoRoute handles API server response when endpoint couldn't be found
+        <span class="cov0" title="0">router.NoRoute(gin.HandlerFunc(func(c *gin.Context) </span><span class="cov0" title="0">{
+                response.New(
+                        http.StatusNotFound,
+                        response.StatusError,
+                        []response.ApiError{
+                                {
+                                        Code:    response.ErrorRouteNotFound,
+                                        Message: "Route Endpoint Not Found.",
+                                },
+                        }, nil).WriteJSONResponse(c.Writer)
+        }</span>))
 
-        gin.Recovery()
+        // NoMethod handles API server response when endpoint method is not allowed
+        <span class="cov0" title="0">router.NoMethod(gin.HandlerFunc(func(c *gin.Context) </span><span class="cov0" title="0">{
+                response.New(
+                        http.StatusMethodNotAllowed,
+                        response.StatusError,
+                        []response.ApiError{
+                                {
+                                        Code:    response.ErrorMethodNotAllowed,
+                                        Message: "Method is not allowed, boy.",
+                                },
+                        }, nil).WriteJSONResponse(c.Writer)
+        }</span>))
 
-        res := response.New(http.StatusInternalServerError, response.StatusError, make([]response.ApiError, 0), nil)
-        res.SetErrorMessages(res.GetErrorMessageSlice(response.ErrorInternalServerError, "", "Internal Server Error"))
-        res.WriteJSONResponse(w)
+        <span class="cov0" title="0">router.Use(middlewares...)
 
-        return
-}</span>
-
-// methodNotAllowedHandler handles API server response when endpoint method is not allowed
-func (s *Server) methodNotAllowedHandler(w http.ResponseWriter, r *http.Request) <span class="cov0" title="0">{
-
-        w.Header().Set("Content-Type", "application/json")
-
-        res := response.New(http.StatusMethodNotAllowed, response.StatusError, make([]response.ApiError, 0), nil)
-        res.SetErrorMessages(res.GetErrorMessageSlice(response.ErrorMethodNotAllowed, "", "Method is not allowed."))
-        res.WriteJSONResponse(w)
-
-        return
-}</span>
+        return router</span>
+}
 
 // Logger send requests and response to database, and generate checksum if needed
 func (s *Server) Logger() gin.HandlerFunc <span class="cov0" title="0">{
