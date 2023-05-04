@@ -8,20 +8,20 @@ import (
 	"strings"
 
 	cst "github.com/arckadious/fizzbuzz/constant"
+	"github.com/arckadious/fizzbuzz/repository"
 
 	"github.com/arckadious/fizzbuzz/model"
-	"github.com/arckadious/fizzbuzz/repository"
 	"github.com/arckadious/fizzbuzz/response"
 )
 
 // Fizz Class (manager child class)
 type Fizz struct {
 	*Manager //Fizz class has attributes and methods from manager parent class
-	repoFizz *repository.Fizz
+	repoFizz repository.FizzInterface
 }
 
 // NewFizz constructor Manager child Fizz
-func NewFizz(m *Manager, repo *repository.Fizz) *Fizz {
+func NewFizz(m *Manager, repo repository.FizzInterface) *Fizz {
 	return &Fizz{
 		Manager:  m,
 		repoFizz: repo,
@@ -75,6 +75,12 @@ func (m *Fizz) HandleStatistics(w http.ResponseWriter) {
 	var msgStruct model.Input
 	err = json.Unmarshal([]byte(msg), &msgStruct)
 	if err != nil {
+		res.SetErrorResponse(http.StatusInternalServerError, []response.ApiError{{Code: cst.ErrorInternalServerError, Message: err.Error()}}).WriteJSONResponse(w)
+		return
+	}
+
+	//Validate data coming from database
+	if err := m.GetValidator().Struct(msgStruct); err != nil {
 		res.SetErrorResponse(http.StatusInternalServerError, []response.ApiError{{Code: cst.ErrorInternalServerError, Message: err.Error()}}).WriteJSONResponse(w)
 		return
 	}

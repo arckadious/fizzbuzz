@@ -15,6 +15,10 @@ type Repository struct {
 	db *database.DB
 }
 
+type RepositoryInterface interface {
+	LogToDB(logType, msg, url, corID, checksum, status string) (err error)
+}
+
 // New constructor Repository
 func New(Db *database.DB) *Repository {
 	return &Repository{Db}

@@ -2,6 +2,7 @@
 package response
 
 import (
+	"net/http"
 	"net/http/httptest"
 	"testing"
 
@@ -19,29 +20,29 @@ func TestApiresponse(t *testing.T) {
 	///////////////////////
 
 	// Message spécifié taille 1, data nil
-	ar := New(200, "test", []ApiError{{Code: "test", Message: "test"}}, nil)
+	ar := New(http.StatusOK, "test", []ApiError{{Code: "test", Message: "test"}}, nil)
 	require.NotNil(ar)
 	w := httptest.NewRecorder()
 	ar.WriteJSONResponse(w)
-	assert.Equal(200, w.Code)
+	assert.Equal(http.StatusOK, w.Code)
 	assert.Equal("{\"status\":\"test\",\"messages\":[{\"code\":\"test\",\"message\":\"test\"}],\"data\":null}", w.Body.String())
 
 	//pas de message, data nil
-	ar = New(200, "test", []ApiError{}, nil)
+	ar = New(http.StatusOK, "test", []ApiError{}, nil)
 	assert.NotNil(ar)
 	w = httptest.NewRecorder()
 	ar.WriteJSONResponse(w)
-	assert.Equal(200, w.Code)
+	assert.Equal(http.StatusOK, w.Code)
 	assert.Equal("{\"status\":\"test\",\"messages\":[],\"data\":null}", w.Body.String())
 
-	//message nil, data nil, setData = "test", setErrorResponse 400 message 2
-	ar = New(200, "test", []ApiError{}, nil)
+	//message nil, data nil, setData = "test", setErrorResponse http.StatusBadRequest message 2
+	ar = New(http.StatusOK, "test", []ApiError{}, nil)
 	assert.NotNil(ar)
 	w = httptest.NewRecorder()
 	ar.SetData("test")
-	ar.SetErrorResponse(400, []ApiError{{Code: "test", Message: "test"}, {Code: "test2", Message: "test2"}})
+	ar.SetErrorResponse(http.StatusBadRequest, []ApiError{{Code: "test", Message: "test"}, {Code: "test2", Message: "test2"}})
 	ar.WriteJSONResponse(w)
-	assert.Equal(400, w.Code)
+	assert.Equal(http.StatusBadRequest, w.Code)
 	assert.Equal("{\"status\":\"error\",\"messages\":[{\"code\":\"test\",\"message\":\"test\"},{\"code\":\"test2\",\"message\":\"test2\"}],\"data\":\"test\"}", w.Body.String())
 
 }

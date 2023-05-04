@@ -10,6 +10,10 @@ type Fizz struct {
 	*Repository
 }
 
+type FizzInterface interface { // Use an interface as prototype, to allow mocks testing.
+	GetMostRequestUsed() (msg string, hits int, noRows bool, err error)
+}
+
 // New constructor Repository child Fizz
 func NewFizz(repo *Repository) *Fizz {
 	return &Fizz{

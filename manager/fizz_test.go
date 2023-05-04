@@ -2,6 +2,7 @@
 package manager
 
 import (
+	"database/sql"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -13,8 +14,18 @@ import (
 	"github.com/arckadious/fizzbuzz/response"
 	"github.com/arckadious/fizzbuzz/validator"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
+
+type FizzRepositoryMock struct {
+	mock.Mock
+}
+
+func (m *FizzRepositoryMock) GetMostRequestUsed() (msg string, hits int, noRows bool, err error) {
+	args := m.Called()
+	return args.String(0), args.Int(1), args.Bool(2), args.Error(3)
+}
 
 func TestFizz(t *testing.T) {
 
@@ -23,13 +34,13 @@ func TestFizz(t *testing.T) {
 	cf, err := config.New("../tests/mock/parametersOK.json", *validator.New())
 	require.NoError(err)
 	mng := New(cf, *response.New(http.StatusOK, cst.StatusSuccess, make([]response.ApiError, 0), nil), validator.New(), &repository.Repository{})
-	// repoFizz := new(FizzRepositoryMock)
+	repoFizz := new(FizzRepositoryMock) //repository Fizz mock
 
 	////////////////
 	// Fizz.New() //
 	////////////////
 
-	mf := NewFizz(mng, &repository.Fizz{}) //repoFizz)
+	mf := NewFizz(mng, repoFizz)
 
 	//////////////////////////////////////////
 	// Manager Methods from Parent class OK //
@@ -45,14 +56,14 @@ func TestFizz(t *testing.T) {
 	// model.Input empty
 	w := httptest.NewRecorder()
 	mf.HandleFizz(w, model.Input{})
-	require.Equal(w.Body.String(), "{\"status\":\"success\",\"messages\":[],\"data\":\"\"}")
-	assert.Equal(200, w.Code)
+	require.Equal("{\"status\":\"success\",\"messages\":[],\"data\":\"\"}", w.Body.String())
+	assert.Equal(http.StatusOK, w.Code)
 
 	// limit 5 parameter
 	w = httptest.NewRecorder()
 	mf.HandleFizz(w, model.Input{Limit: 5})
-	assert.Equal(w.Body.String(), "{\"status\":\"success\",\"messages\":[],\"data\":\"1,2,3,4,5\"}")
-	assert.Equal(200, w.Code)
+	assert.Equal("{\"status\":\"success\",\"messages\":[],\"data\":\"1,2,3,4,5\"}", w.Body.String())
+	assert.Equal(http.StatusOK, w.Code)
 
 	// Limit 30, one multiple 3
 	w = httptest.NewRecorder()
@@ -62,8 +73,8 @@ func TestFizz(t *testing.T) {
 			StrX: "fizz",
 		},
 	}})
-	assert.Equal(w.Body.String(), "{\"status\":\"success\",\"messages\":[],\"data\":\"1,2,fizz,4,5,fizz,7,8,fizz,10,11,fizz,13,14,fizz,16,17,fizz,19,20,fizz,22,23,fizz,25,26,fizz,28,29,fizz\"}")
-	assert.Equal(200, w.Code)
+	assert.Equal("{\"status\":\"success\",\"messages\":[],\"data\":\"1,2,fizz,4,5,fizz,7,8,fizz,10,11,fizz,13,14,fizz,16,17,fizz,19,20,fizz,22,23,fizz,25,26,fizz,28,29,fizz\"}", w.Body.String())
+	assert.Equal(http.StatusOK, w.Code)
 
 	// Limit 30, two multiple 3, and 5
 	w = httptest.NewRecorder()
@@ -78,8 +89,8 @@ func TestFizz(t *testing.T) {
 		},
 	}})
 
-	assert.Equal(200, w.Code)
-	assert.Equal(w.Body.String(), "{\"status\":\"success\",\"messages\":[],\"data\":\"1,2,fizz,4,buzz,fizz,7,8,fizz,buzz,11,fizz,13,14,fizzbuzz,16,17,fizz,19,buzz,fizz,22,23,fizz,buzz,26,fizz,28,29,fizzbuzz\"}")
+	assert.Equal(http.StatusOK, w.Code)
+	assert.Equal("{\"status\":\"success\",\"messages\":[],\"data\":\"1,2,fizz,4,buzz,fizz,7,8,fizz,buzz,11,fizz,13,14,fizzbuzz,16,17,fizz,19,buzz,fizz,22,23,fizz,buzz,26,fizz,28,29,fizzbuzz\"}", w.Body.String())
 
 	// Limit 30, two multiple 5, and 3
 	w = httptest.NewRecorder()
@@ -93,19 +104,58 @@ func TestFizz(t *testing.T) {
 			StrX: "fizz",
 		},
 	}})
-	assert.Equal(200, w.Code)
-	assert.Equal(w.Body.String(), "{\"status\":\"success\",\"messages\":[],\"data\":\"1,2,fizz,4,buzz,fizz,7,8,fizz,buzz,11,fizz,13,14,buzzfizz,16,17,fizz,19,buzz,fizz,22,23,fizz,buzz,26,fizz,28,29,buzzfizz\"}")
+	assert.Equal(http.StatusOK, w.Code)
+	assert.Equal("{\"status\":\"success\",\"messages\":[],\"data\":\"1,2,fizz,4,buzz,fizz,7,8,fizz,buzz,11,fizz,13,14,buzzfizz,16,17,fizz,19,buzz,fizz,22,23,fizz,buzz,26,fizz,28,29,buzzfizz\"}", w.Body.String())
 
 	/////////////////////////////
 	// Fizz.HandleStatistics() //
 	/////////////////////////////
 
-	// // No rows in database (mocked)
-	// repoFizz.On("GetMostRequestUsed").Return("", 0, true, nil)
+	// No rows in database (mock DB)
+	repoFizz.On("GetMostRequestUsed").Return("", 0, true, sql.ErrNoRows)
+	w = httptest.NewRecorder()
+	mf.HandleStatistics(w)
+	repoFizz.AssertExpectations(t)
+	assert.Equal(http.StatusPartialContent, w.Code)
+	assert.Equal("{\"status\":\"success\",\"messages\":[],\"data\":null}", w.Body.String())
 
-	// // call the code we are testing
-	// mf.HandleStatistics(w)
+	// Wrong message returned by function GetMostRequestUsed.
+	repoFizz.ExpectedCalls = []*mock.Call{}
+	repoFizz.On("GetMostRequestUsed").Return("toto", 0, false, nil)
+	w = httptest.NewRecorder()
+	mf.HandleStatistics(w)
+	repoFizz.AssertExpectations(t)
+	assert.Equal(http.StatusInternalServerError, w.Code)
+	assert.Equal("{\"status\":\"error\",\"messages\":[{\"code\":\"INTERNAL_SERVER_ERR\",\"message\":\"invalid character 'o' in literal true (expecting 'r')\"}],\"data\":null}", w.Body.String())
 
-	// // assert that the expectations were met
-	// repoFizz.AssertExpectations(t)
+	// Wrong JSON message returned by function GetMostRequestUsed.
+	repoFizz.ExpectedCalls = []*mock.Call{}
+	repoFizz.On("GetMostRequestUsed").Return("{\"toto\":\"test\"}", 0, false, nil)
+	w = httptest.NewRecorder()
+	mf.HandleStatistics(w)
+	repoFizz.AssertExpectations(t)
+	assert.Equal(http.StatusInternalServerError, w.Code)
+	assert.Contains(w.Body.String(), "{\"status\":\"error\",\"messages\":[{\"code\":\"INTERNAL_SERVER_ERR\",\"message\":\"Key: ")
+
+	// Process OK
+	repoFizz.ExpectedCalls = []*mock.Call{}
+	repoFizz.On("GetMostRequestUsed").Return(`{
+			"multiples": [
+			  {
+				"intX": 3,
+				"strX": "fizz"
+			  },
+			  {
+				"intX": 5,
+				"strX": "buzz"
+			  }
+			],
+			"limit": 100
+		  }`, 56, false, nil)
+	w = httptest.NewRecorder()
+	mf.HandleStatistics(w)
+	repoFizz.AssertExpectations(t)
+	assert.Equal(http.StatusOK, w.Code)
+	assert.Equal("{\"status\":\"success\",\"messages\":[],\"data\":{\"request\":{\"Limit\":100,\"Multiples\":[{\"IntX\":3,\"StrX\":\"fizz\"},{\"IntX\":5,\"StrX\":\"buzz\"}]},\"hits\":56}}", w.Body.String())
+
 }

@@ -14,11 +14,11 @@ type Manager struct {
 	cf          *config.Config
 	apiResponse response.ApiResponse
 	validator   *validator.Validate
-	repo        *repository.Repository
+	repo        repository.RepositoryInterface
 }
 
 // New constructor Manager
-func New(cf *config.Config, apiResponse response.ApiResponse, v *validator.Validate, repo *repository.Repository) *Manager {
+func New(cf *config.Config, apiResponse response.ApiResponse, v *validator.Validate, repo repository.RepositoryInterface) *Manager {
 	return &Manager{cf, apiResponse, v, repo}
 }
 
