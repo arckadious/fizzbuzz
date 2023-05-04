@@ -9,18 +9,20 @@ import (
 	"github.com/arckadious/fizzbuzz/validator"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestContainer(t *testing.T) {
 
 	assert := assert.New(t)
+	require := require.New(t)
 
 	/////////////////////
 	// Container.New() //
 	/////////////////////
 
 	cf, err := config.New("../tests/mock/parametersOK.json", *validator.New())
-	assert.NoError(err)
+	require.NoError(err)
 	container := New(cf, validator.New(), &database.DB{})
 	assert.NotEqual(nil, container)
 	assert.NotEqual(nil, container.Conf)

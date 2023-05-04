@@ -17,8 +17,8 @@ type FizzAction struct {
 	mng *manager.Fizz
 }
 
-// NewFizzAction constructor FizzAction
-func NewFizzAction(mng *manager.Fizz) *FizzAction {
+// New constructor FizzAction
+func New(mng *manager.Fizz) *FizzAction {
 	return &FizzAction{mng}
 }
 

@@ -19,7 +19,6 @@ type ApiResponse struct {
 
 type ApiError struct {
 	Code    string `json:"code"`
-	Field   string `json:"field"`
 	Message string `json:"message"`
 }
 

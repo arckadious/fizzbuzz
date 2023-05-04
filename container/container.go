@@ -56,7 +56,7 @@ func (c *Container) setActions() *Container {
 
 	mngrFizz := manager.NewFizz(mng, c.RepoFizz) //init fizz object, child of manager class
 
-	c.FizzAction = fizzaction.NewFizzAction(mngrFizz)
+	c.FizzAction = fizzaction.New(mngrFizz)
 
 	return c
 }
