@@ -2,8 +2,10 @@
 package config
 
 import (
+	"os"
 	"testing"
 
+	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/stretchr/testify/assert"
 )
@@ -35,6 +37,13 @@ func TestConfig(t *testing.T) {
 	if assert.Error(err) {
 		assert.Equal("Key: 'Config.Env' Error:Field validation for 'Env' failed on the 'oneof' tag", err.Error())
 	}
+
+	//Gin debug mode
+	_, err = New("../tests/mock/parameters-gindebug.json", *validator.New())
+	assert.NoError(err)
+	assert.Equal("debug", gin.Mode())
+	err = os.Remove("gin.log")
+	assert.NoError(err)
 
 	///////////////////////
 	// Config.RootPath() //

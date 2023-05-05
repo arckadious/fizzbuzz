@@ -57,7 +57,7 @@
 				
 				<option value="file0">github.com/arckadious/fizzbuzz/action/fizz/fizz.go (92.3%)</option>
 				
-				<option value="file1">github.com/arckadious/fizzbuzz/config/config.go (90.6%)</option>
+				<option value="file1">github.com/arckadious/fizzbuzz/config/config.go (90.0%)</option>
 				
 				<option value="file2">github.com/arckadious/fizzbuzz/container/container.go (100.0%)</option>
 				
@@ -69,15 +69,19 @@
 				
 				<option value="file6">github.com/arckadious/fizzbuzz/model/endpoint.go (100.0%)</option>
 				
-				<option value="file7">github.com/arckadious/fizzbuzz/repository/fizz.go (0.0%)</option>
+				<option value="file7">github.com/arckadious/fizzbuzz/repository/fizz.go (100.0%)</option>
 				
 				<option value="file8">github.com/arckadious/fizzbuzz/repository/repository.go (100.0%)</option>
 				
 				<option value="file9">github.com/arckadious/fizzbuzz/response/apiresponse.go (92.3%)</option>
 				
-				<option value="file10">github.com/arckadious/fizzbuzz/server/server.go (0.0%)</option>
+				<option value="file10">github.com/arckadious/fizzbuzz/server/handler.go (0.0%)</option>
 				
-				<option value="file11">github.com/arckadious/fizzbuzz/util/util.go (94.1%)</option>
+				<option value="file11">github.com/arckadious/fizzbuzz/server/middleware.go (0.0%)</option>
+				
+				<option value="file12">github.com/arckadious/fizzbuzz/server/server.go (0.0%)</option>
+				
+				<option value="file13">github.com/arckadious/fizzbuzz/util/util.go (94.1%)</option>
 				
 				</select>
 			</div>
@@ -154,6 +158,7 @@ import (
         "strings"
         "time"
 
+        "github.com/gin-gonic/gin"
         "github.com/go-playground/validator/v10"
         "github.com/sirupsen/logrus"
 )
@@ -249,6 +254,19 @@ func New(fileName string, validator validator.Validate) (c *Config, err error) <
         }</span> else<span class="cov0" title="0"> {
                 logrus.SetLevel(logrus.DebugLevel)
         }</span>
+
+        //Set Gin mode
+        <span class="cov8" title="1">if c.Env != "localhost" </span><span class="cov8" title="1">{
+                gin.SetMode(gin.ReleaseMode)
+        }</span> else<span class="cov8" title="1"> {
+                gin.SetMode(gin.DebugMode)
+                var f *os.File
+                f, err := os.OpenFile("gin.log", os.O_APPEND|os.O_CREATE|os.O_RDWR, 0644)
+                if err != nil </span><span class="cov0" title="0">{
+                        logrus.Fatal(err)
+                }</span>
+                <span class="cov8" title="1">gin.DefaultWriter = f</span>
+        }
 
         //validate fields from config
         <span class="cov8" title="1">if err = validator.Struct(c); err != nil </span><span class="cov8" title="1">{
@@ -602,7 +620,7 @@ type FizzInterface interface { // Use an interface as prototype, to allow mocks 
 }
 
 // New constructor Repository child Fizz
-func NewFizz(repo *Repository) *Fizz <span class="cov0" title="0">{
+func NewFizz(repo *Repository) *Fizz <span class="cov8" title="1">{
         return &amp;Fizz{
                 repo,
         }
@@ -610,14 +628,14 @@ func NewFizz(repo *Repository) *Fizz <span class="cov0" title="0">{
 }</span>
 
 // GetMostRequestUsed returns from database the most used request (if any) as well as the number of hits.
-func (rf *Fizz) GetMostRequestUsed() (msg string, hits int, noRows bool, err error) <span class="cov0" title="0">{
+func (rf *Fizz) GetMostRequestUsed() (msg string, hits int, noRows bool, err error) <span class="cov8" title="1">{
         err = rf.db.GetConnector().QueryRow("SELECT MSG, count(*) as HITS FROM `MESSAGES_REQUEST` WHERE CHECKSUM IS NOT NULL AND CHECKSUM != '' GROUP BY CHECKSUM ORDER BY HITS DESC LIMIT 1;").Scan(&amp;msg, &amp;hits)
 
-        if err == sql.ErrNoRows </span><span class="cov0" title="0">{
+        if err == sql.ErrNoRows </span><span class="cov8" title="1">{
                 noRows = true
         }</span>
 
-        <span class="cov0" title="0">return</span>
+        <span class="cov8" title="1">return</span>
 }
 </pre>
 		
@@ -742,22 +760,135 @@ func (res *ApiResponse) WriteJSONResponse(w http.ResponseWriter) <span class="co
 package server
 
 import (
+        "net/http"
+
+        cst "github.com/arckadious/fizzbuzz/constant"
+        "github.com/arckadious/fizzbuzz/response"
+        "github.com/gin-gonic/gin"
+        "github.com/sirupsen/logrus"
+)
+
+// recoveryHandler handles unexpected 'panic' call during process, and return a custom 500 internal server error.
+func (s *Server) recoveryHandler(c *gin.Context, err interface{}) <span class="cov0" title="0">{
+        logrus.Error(err)
+        response.New(
+                http.StatusInternalServerError,
+                cst.StatusError,
+                []response.ApiError{
+                        {
+                                Code:    cst.ErrorInternalServerError,
+                                Message: "Internal Server Error, oups !",
+                        },
+                },
+                nil,
+        ).WriteJSONResponse(c.Writer)
+}</span>
+
+// notFoundHandler handles API server response when endpoint couldn't be found
+func (s *Server) notFoundHandler(c *gin.Context) <span class="cov0" title="0">{
+        response.New(
+                http.StatusNotFound,
+                cst.StatusError,
+                []response.ApiError{
+                        {
+                                Code:    cst.ErrorRouteNotFound,
+                                Message: "This is not what you are looking for.",
+                        },
+                },
+                nil,
+        ).WriteJSONResponse(c.Writer)
+}</span>
+
+// methodNotAllowedHandler handles API server response when endpoint method is not allowed
+func (s *Server) methodNotAllowedHandler(c *gin.Context) <span class="cov0" title="0">{
+        response.New(
+                http.StatusMethodNotAllowed,
+                cst.StatusError,
+                []response.ApiError{
+                        {
+                                Code:    cst.ErrorMethodNotAllowed,
+                                Message: "Method is not allowed, boy.",
+                        },
+                },
+                nil,
+        ).WriteJSONResponse(c.Writer)
+}</span>
+</pre>
+		
+		<pre class="file" id="file11" style="display: none">// This package creates and run a rest API server, using Gin framework
+package server
+
+import (
+        "bytes"
+        "encoding/json"
+        "path"
+        "strconv"
+
+        "github.com/arckadious/fizzbuzz/model"
+        "github.com/arckadious/fizzbuzz/util"
+        "github.com/gin-gonic/gin"
+        "github.com/sirupsen/logrus"
+)
+
+// Logger send requests and response to database, and generate checksum if needed
+func (s *Server) Logger() gin.HandlerFunc <span class="cov0" title="0">{
+        return func(c *gin.Context) </span><span class="cov0" title="0">{
+
+                //Generate unique ID to make link between request and its associated response (stored in a different table)
+                corID, _ := util.GenerateUID()
+
+                body, err := util.ExtractBody(c.Request)
+                if err != nil </span><span class="cov0" title="0">{
+                        logrus.Error("Logger coudn't send request data: ", err)
+                        return
+                }</span>
+
+                //Create a checksum for the current request, only if it's the main endpoint (/fizzbuzz) and data is valid.
+                <span class="cov0" title="0">var data model.Input
+                checksum := ""
+                if c.Request.RequestURI == URLPrefixVersion+FizzBaseURI &amp;&amp; json.Unmarshal(body, &amp;data) == nil &amp;&amp; s.container.Validator.Struct(data) == nil </span><span class="cov0" title="0">{
+                        checksum = util.GetMD5Hash(data.String())
+                }</span>
+
+                // Create copy to be used inside the goroutine - See Gin documentation : https://gin-gonic.com/docs/examples/goroutines-inside-a-middleware/
+                <span class="cov0" title="0">cCp := c.Copy()
+
+                go func() </span><span class="cov0" title="0">{
+                        if err := s.container.Repo.LogToDB("request", string(body), Scheme+"://"+path.Join(cCp.Request.Host, cCp.Request.RequestURI), corID, checksum, ""); err != nil </span><span class="cov0" title="0">{
+                                logrus.Error(err)
+                        }</span>
+                }()
+
+                // Intercept Writer in order to get response body
+                <span class="cov0" title="0">blw := &amp;bodyLogWriter{body: bytes.NewBufferString(""), ResponseWriter: c.Writer}
+                c.Writer = blw
+
+                c.Next()
+
+                status := blw.Status()
+                respBody := blw.body.String()
+                go func() </span><span class="cov0" title="0">{
+                        if err := s.container.Repo.LogToDB("response", respBody, "", corID, checksum, strconv.Itoa(status)); err != nil </span><span class="cov0" title="0">{
+                                logrus.Error(err)
+                        }</span>
+                }()
+        }
+}
+</pre>
+		
+		<pre class="file" id="file12" style="display: none">// This package creates and run a rest API server, using Gin framework
+package server
+
+import (
         "bytes"
         "context"
-        "encoding/json"
         "net/http"
         "os"
         "os/signal"
-        "path"
         "strconv"
         "time"
 
-        cst "github.com/arckadious/fizzbuzz/constant"
-
         "github.com/arckadious/fizzbuzz/container"
-        "github.com/arckadious/fizzbuzz/model"
-        "github.com/arckadious/fizzbuzz/response"
-        "github.com/arckadious/fizzbuzz/util"
 
         "github.com/gin-gonic/gin"
 
@@ -876,118 +1007,22 @@ func (s *Server) handler() *gin.Engine <span class="cov0" title="0">{
 // configureGin set gin configuration.
 func (s *Server) configureGin() *gin.Engine <span class="cov0" title="0">{
 
-        //Middlewares for Gin
-        middlewares := []gin.HandlerFunc{}
+        router := gin.New()
+        if s.container.Conf.Env == "localhost" </span><span class="cov0" title="0">{
+                router.Use(gin.Logger())
+        }</span>
 
-        //Set Gin mode
-        if s.container.Conf.Env != "localhost" </span><span class="cov0" title="0">{
-                gin.SetMode(gin.ReleaseMode)
-        }</span> else<span class="cov0" title="0"> {
-                gin.SetMode(gin.DebugMode)
-                middlewares = append(middlewares, gin.Logger()) //debug logger local development
-                var f *os.File
-                f, err := os.OpenFile("gin.log", os.O_APPEND|os.O_CREATE|os.O_RDWR, 0644)
-                if err != nil </span><span class="cov0" title="0">{
-                        logrus.Fatal(err)
-                }</span>
-                <span class="cov0" title="0">gin.DefaultWriter = f</span>
-        }
+        <span class="cov0" title="0">router.HandleMethodNotAllowed = true
 
-        <span class="cov0" title="0">router := gin.New()
-        router.HandleMethodNotAllowed = true
-
-        // CustomRecovery handles unexpected 'panic' call during process, and return a custom 500 internal server error.
-        middlewares = append(middlewares, gin.CustomRecovery(func(c *gin.Context, err interface{}) </span><span class="cov0" title="0">{
-                logrus.Error(err)
-                response.New(
-                        http.StatusInternalServerError,
-                        cst.StatusError,
-                        []response.ApiError{
-                                {
-                                        Code:    cst.ErrorInternalServerError,
-                                        Message: "Internal Server Error, oups !",
-                                },
-                        }, nil).WriteJSONResponse(c.Writer)
-        }</span>))
-
-        // NoRoute handles API server response when endpoint couldn't be found
-        <span class="cov0" title="0">router.NoRoute(gin.HandlerFunc(func(c *gin.Context) </span><span class="cov0" title="0">{
-                response.New(
-                        http.StatusNotFound,
-                        cst.StatusError,
-                        []response.ApiError{
-                                {
-                                        Code:    cst.ErrorRouteNotFound,
-                                        Message: "Route Endpoint Not Found.",
-                                },
-                        }, nil).WriteJSONResponse(c.Writer)
-        }</span>))
-
-        // NoMethod handles API server response when endpoint method is not allowed
-        <span class="cov0" title="0">router.NoMethod(gin.HandlerFunc(func(c *gin.Context) </span><span class="cov0" title="0">{
-                response.New(
-                        http.StatusMethodNotAllowed,
-                        cst.StatusError,
-                        []response.ApiError{
-                                {
-                                        Code:    cst.ErrorMethodNotAllowed,
-                                        Message: "Method is not allowed, boy.",
-                                },
-                        }, nil).WriteJSONResponse(c.Writer)
-        }</span>))
-
-        <span class="cov0" title="0">router.Use(middlewares...)
+        router.Use(gin.CustomRecovery(s.recoveryHandler))
+        router.NoRoute(gin.HandlerFunc(s.notFoundHandler))
+        router.NoMethod(gin.HandlerFunc(s.methodNotAllowedHandler))
 
         return router</span>
 }
-
-// Logger send requests and response to database, and generate checksum if needed
-func (s *Server) Logger() gin.HandlerFunc <span class="cov0" title="0">{
-        return func(c *gin.Context) </span><span class="cov0" title="0">{
-
-                //Generate unique ID to make link between request and its associated response (stored in a different table)
-                corID, _ := util.GenerateUID()
-
-                body, err := util.ExtractBody(c.Request)
-                if err != nil </span><span class="cov0" title="0">{
-                        logrus.Error("Logger coudn't send request data: ", err)
-                        return
-                }</span>
-
-                //Create a checksum for the current request, only if it's the main endpoint (/fizzbuzz) and data is valid.
-                <span class="cov0" title="0">var data model.Input
-                checksum := ""
-                if c.Request.RequestURI == URLPrefixVersion+FizzBaseURI &amp;&amp; json.Unmarshal(body, &amp;data) == nil &amp;&amp; s.container.Validator.Struct(data) == nil </span><span class="cov0" title="0">{
-                        checksum = util.GetMD5Hash(data.String())
-                }</span>
-
-                // Create copy to be used inside the goroutine - See Gin documentation : https://gin-gonic.com/docs/examples/goroutines-inside-a-middleware/
-                <span class="cov0" title="0">cCp := c.Copy()
-
-                go func() </span><span class="cov0" title="0">{
-                        if err := s.container.Repo.LogToDB("request", string(body), Scheme+"://"+path.Join(cCp.Request.Host, cCp.Request.RequestURI), corID, checksum, ""); err != nil </span><span class="cov0" title="0">{
-                                logrus.Error(err)
-                        }</span>
-                }()
-
-                // Intercept Writer in order to get response body
-                <span class="cov0" title="0">blw := &amp;bodyLogWriter{body: bytes.NewBufferString(""), ResponseWriter: c.Writer}
-                c.Writer = blw
-
-                c.Next()
-
-                status := blw.Status()
-                respBody := blw.body.String()
-                go func() </span><span class="cov0" title="0">{
-                        if err := s.container.Repo.LogToDB("response", respBody, "", corID, checksum, strconv.Itoa(status)); err != nil </span><span class="cov0" title="0">{
-                                logrus.Error(err)
-                        }</span>
-                }()
-        }
-}
 </pre>
 		
-		<pre class="file" id="file11" style="display: none">// This package contains various useful tools like MD5 Hash and http body extract
+		<pre class="file" id="file13" style="display: none">// This package contains various useful tools like MD5 Hash and http body extract
 package util
 
 import (
