@@ -22,10 +22,14 @@ type Container struct {
 	Conf      *config.Config
 	Validator *validator.Validate
 
+	Manager     *manager.Manager
+	ManagerFizz *manager.Fizz
+
 	FizzAction *fizzaction.FizzAction
-	Db         *database.DB
-	Repo       *repository.Repository
-	RepoFizz   *repository.Fizz
+
+	Db       *database.DB
+	Repo     *repository.Repository
+	RepoFizz *repository.Fizz
 }
 
 // New constructor Container
@@ -37,12 +41,13 @@ func New(conf *config.Config, validator *validator.Validate, db *database.DB) *C
 		Db:        db,
 	}
 	container.setRepositories(db)
+	container.setManagers()
 	container.setActions()
 
 	return &container
 }
 
-func (c *Container) setActions() *Container {
+func (c *Container) setManagers() {
 
 	// Default API Response is always set to HTTP status 200
 	resp := response.ApiResponse{
@@ -52,13 +57,12 @@ func (c *Container) setActions() *Container {
 	}
 
 	// Starting init managers and actions
-	mng := manager.New(c.Conf, resp, c.Validator, c.Repo) //init manager object by calling constructor
+	c.Manager = manager.New(c.Conf, resp, c.Validator, c.Repo) //init manager object by calling constructor
 
-	mngrFizz := manager.NewFizz(mng, c.RepoFizz) //init fizz object, child of manager class
-
-	c.FizzAction = fizzaction.New(mngrFizz)
-
-	return c
+	c.ManagerFizz = manager.NewFizz(c.Manager, c.RepoFizz) //init fizz object, child of manager class
+}
+func (c *Container) setActions() {
+	c.FizzAction = fizzaction.New(c.ManagerFizz)
 }
 
 func (c *Container) setRepositories(db *database.DB) {
