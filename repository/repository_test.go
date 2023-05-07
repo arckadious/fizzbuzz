@@ -10,6 +10,8 @@ import (
 	"github.com/arckadious/fizzbuzz/database"
 	"github.com/arckadious/fizzbuzz/validator"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -23,6 +25,8 @@ func TestRepository(t *testing.T) {
 	db := database.New(cf)
 	repo := New(db)
 	require.NotEqual(nil, repo)
+	hook := new(test.Hook)
+	logrus.AddHook(hook)
 
 	//////////////////////////
 	// Repository.LogToDB() //
@@ -68,6 +72,7 @@ func TestRepository(t *testing.T) {
 
 	if err = repo.LogToDB("REQUEST", "", "", "test", "", ""); assert.Error(err) {
 		assert.Equal("Logger coudn't send REQUEST data: sql: database is closed", err.Error())
+		assert.Equal("GetConnector MySQL: sql: database is closed", hook.LastEntry().Message)
 	}
 
 }

@@ -61,7 +61,7 @@
 				
 				<option value="file2">github.com/arckadious/fizzbuzz/container/container.go (100.0%)</option>
 				
-				<option value="file3">github.com/arckadious/fizzbuzz/database/db.go (77.8%)</option>
+				<option value="file3">github.com/arckadious/fizzbuzz/database/db.go (85.2%)</option>
 				
 				<option value="file4">github.com/arckadious/fizzbuzz/manager/fizz.go (93.5%)</option>
 				
@@ -388,7 +388,7 @@ func New(cf *config.Config) *DB <span class="cov8" title="1">{
 // GetConnector returns sql connector, creating new connection if necessary
 func (db *DB) GetConnector() *sql.DB <span class="cov8" title="1">{
         err := db.dbConnector.Ping() // Ensure that a connection to the database is still alive, establishing a connection if necessary.
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 logrus.Error("GetConnector MySQL: ", err)
         }</span>
         <span class="cov8" title="1">return db.dbConnector</span>
@@ -423,7 +423,7 @@ func (db *DB) connect() (dbConnector *sql.DB, err error) <span class="cov8" titl
         }</span>
 
         <span class="cov8" title="1">err = dbConnector.Ping()
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 return
         }</span>
 
@@ -872,6 +872,7 @@ func (s *Server) handler() *gin.Engine <span class="cov0" title="0">{
         router.Use(gin.CustomRecovery(s.recoveryHandler))
         router.NoRoute(gin.HandlerFunc(s.notFoundHandler))
         router.NoMethod(gin.HandlerFunc(s.methodNotAllowedHandler))
+
         //api doc (excluded from loggerMiddleware)
         router.Static("/swagger", "./swaggerui")
 

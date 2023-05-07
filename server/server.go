@@ -114,6 +114,7 @@ func (s *Server) handler() *gin.Engine {
 	router.Use(gin.CustomRecovery(s.recoveryHandler))
 	router.NoRoute(gin.HandlerFunc(s.notFoundHandler))
 	router.NoMethod(gin.HandlerFunc(s.methodNotAllowedHandler))
+
 	//api doc (excluded from loggerMiddleware)
 	router.Static("/swagger", "./swaggerui")
 

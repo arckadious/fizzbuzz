@@ -3,8 +3,9 @@ ifeq ($(OS),Windows_NT)
 else 
 	HTML_TEST_OPEN = open ./tests/cover.html
 endif
-.PHONY: all clean down build start start-rp start-db start-logs restart stop stop-rp stop-db stop-logs kill rm in install update srv run bash sh tests
+.PHONY: all clean down build start start-rp start-db start-logs restart stop stop-rp stop-db stop-logs kill rm in install update srv run bash sh tests test
 
+MODULE_NAME = github.com/arckadious/fizzbuzz
 DOCKER_COMPOSE_BIN = docker compose
 DOCKER_COMPOSE = $(DOCKER_COMPOSE_BIN)
 
@@ -87,3 +88,5 @@ tests:
 	@$(DK_EXEC) bash -c "go test -v -coverprofile tests/cover.out ./... && go tool cover -html tests/cover.out -o tests/cover.html"
 	@$(HTML_TEST_OPEN)
 	
+test: # example : ARGS=repository make test -> run package tests in repository folder
+	@$(DK_EXEC) bash -c "go test -timeout 30s ${MODULE_NAME}/${ARGS}"
