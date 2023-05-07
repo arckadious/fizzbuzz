@@ -24,7 +24,8 @@ func NewFizz(repo *Repository) *Fizz {
 
 // GetMostRequestUsed returns from database the most used request (if any) as well as the number of hits.
 func (rf *Fizz) GetMostRequestUsed() (msg string, hits int, noRows bool, err error) {
-	err = rf.db.GetConnector().QueryRow("SELECT MSG, count(*) as HITS FROM `MESSAGES_REQUEST` WHERE CHECKSUM IS NOT NULL AND CHECKSUM != '' GROUP BY CHECKSUM ORDER BY HITS DESC LIMIT 1;").Scan(&msg, &hits)
+	err = rf.db.GetConnector().QueryRow("SELECT MAX(MSG), count(*) as HITS FROM `MESSAGES_REQUEST` WHERE CHECKSUM IS NOT NULL AND CHECKSUM != '' GROUP BY CHECKSUM ORDER BY HITS DESC LIMIT 1;").Scan(&msg, &hits)
+	// NOTE - MAX(MSG) instead of MSG: Since version 5.7.5 Mysql has the "ONLY_FULL_GROUP_BY" flag by default enabled. This request select a random 'MSG' value, but the new flag doesn't allow it. See https://jira.mariadb.org/browse/MDEV-10426 for more details
 
 	if err == sql.ErrNoRows {
 		noRows = true
