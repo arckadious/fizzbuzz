@@ -40,9 +40,11 @@ func TestDB(t *testing.T) {
 
 	// getConnector database closed
 	db.Shutdown()
-	assert.Equal("Shutdown mysql connections OK", hook.LastEntry().Message)
-	assert.NotEqual(nil, db.GetConnector())
-	assert.Equal("GetConnector MySQL: sql: database is closed", hook.LastEntry().Message)
+	if assert.NotNil(hook.LastEntry()) {
+		assert.Equal("Shutdown mysql connections OK", hook.LastEntry().Message)
+		assert.NotEqual(nil, db.GetConnector())
+		assert.Equal("GetConnector MySQL: sql: database is closed", hook.LastEntry().Message)
+	}
 
 	//////////////////
 	// DB.connect() //

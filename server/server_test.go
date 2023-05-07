@@ -2,12 +2,19 @@
 package server
 
 import (
+	"bytes"
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/arckadious/fizzbuzz/config"
 	"github.com/arckadious/fizzbuzz/container"
 	"github.com/arckadious/fizzbuzz/database"
+	"github.com/arckadious/fizzbuzz/response"
 	"github.com/arckadious/fizzbuzz/validator"
+	"github.com/gin-gonic/gin"
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/sirupsen/logrus"
 	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"
@@ -36,7 +43,6 @@ func InitServer(t *testing.T) (*assert.Assertions, *require.Assertions, *test.Ho
 			database.New(cf),
 		),
 	)
-	sG.Run()
 
 	return assert, require, hook
 }
@@ -44,9 +50,99 @@ func InitServer(t *testing.T) (*assert.Assertions, *require.Assertions, *test.Ho
 func TestServerErrorBindPortAlreadyUsed(t *testing.T) {
 
 	assert, _, hook := InitServer(t)
-	assert.
-		sG.Run()
-	assert.Equal("GetConnector MySQL: sql: database is closed", hook.LastEntry().Message)
+	var fatal bool
+	go sG.Run()
+
+	ch := make(chan struct{}, 1)
+
+	logrus.StandardLogger().ExitFunc = func(int) {
+		fatal = true
+		ch <- struct{}{}
+	}
+
+	go sG.Run()
+	<-ch
+
+	assert.True(fatal)
+	if assert.NotNil(hook.LastEntry()) {
+		assert.Contains(hook.LastEntry().Message, "bind: address already in use")
+	}
+	logrus.StandardLogger().ExitFunc = logrus.New().ExitFunc
+
+}
+
+func TestServerHandlers(t *testing.T) {
+	assert, _, _ := InitServer(t)
+
+	router := sG.handler()
+
+	// recoveryHandler
+	w := httptest.NewRecorder()
+	ctx := gin.CreateTestContextOnly(w, router)
+	sG.recoveryHandler(ctx, nil)
+	assert.Equal(500, w.Code)
+	assert.Equal("{\"status\":\"error\",\"messages\":[{\"code\":\"INTERNAL_SERVER_ERR\",\"message\":\"Internal Server Error, oups !\"}],\"data\":null}", w.Body.String())
+
+	// notFoundHandler
+	w = httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/unkwown", nil)
+	router.ServeHTTP(w, req)
+	assert.Equal(404, w.Code)
+	assert.Equal("{\"status\":\"error\",\"messages\":[{\"code\":\"ROUTE_NOT_FOUND_ERR\",\"message\":\"This is not what you are looking for.\"}],\"data\":null}", w.Body.String())
+
+	// methodNotAllowedHandler
+	w = httptest.NewRecorder()
+	req, _ = http.NewRequest("POST", "/ping", nil)
+	router.ServeHTTP(w, req)
+	assert.Equal(405, w.Code)
+	assert.Equal("{\"status\":\"error\",\"messages\":[{\"code\":\"METHOD_NOT_ALLOWED_ERR\",\"message\":\"Method is not allowed, boy.\"}],\"data\":null}", w.Body.String())
+
+}
+
+func TestServerEndpoints(t *testing.T) {
+	assert, _, _ := InitServer(t)
+
+	router := sG.handler()
+
+	// Endpoint /ping
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/ping", nil)
+	router.ServeHTTP(w, req)
+	assert.Equal(200, w.Code)
+	assert.Equal("Ping OK !", w.Body.String())
+
+	// Endpoint /swagger
+	w = httptest.NewRecorder()
+	req, _ = http.NewRequest("GET", "/swagger", nil)
+	router.ServeHTTP(w, req)
+	assert.Equal(301, w.Code)
+	assert.Equal("<a href=\"/swagger/\">Moved Permanently</a>.\n\n", w.Body.String())
+
+	// Endpoint /v1/statistics
+	w = httptest.NewRecorder()
+	req, _ = http.NewRequest("GET", "/v1/statistics", nil)
+	router.ServeHTTP(w, req)
+	assert.True(w.Code == 206 || w.Code == 200)
+	assert.NoError(json.Unmarshal(w.Body.Bytes(), &response.ApiResponse{}))
+
+	//Endpoint /v1/fizzbuzz
+	w = httptest.NewRecorder()
+	req, _ = http.NewRequest("POST", "/v1/fizzbuzz", bytes.NewBufferString(`{
+		"multiples": [
+		  {
+			"intX": 3,
+			"strX": "fizz"
+		  },
+		  {
+			"intX": 5,
+			"strX": "buzz"
+		  }
+		],
+		"limit": 100
+	  }`))
+	router.ServeHTTP(w, req)
+	assert.Equal(200, w.Code)
+	assert.NoError(json.Unmarshal(w.Body.Bytes(), &response.ApiResponse{}))
 }
 
 // func TestServer(t *testing.T) {

@@ -30,6 +30,11 @@ func ExtractBody(r *http.Request) (body []byte, err error) {
 		err = errors.New("Extract body : request nil")
 		return
 	}
+
+	if r.Body == nil {
+		return
+	}
+
 	body, err = io.ReadAll(r.Body)
 	if err != nil {
 		return

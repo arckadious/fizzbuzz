@@ -72,7 +72,8 @@ func TestRepository(t *testing.T) {
 
 	if err = repo.LogToDB("REQUEST", "", "", "test", "", ""); assert.Error(err) {
 		assert.Equal("Logger coudn't send REQUEST data: sql: database is closed", err.Error())
+	}
+	if assert.NotNil(hook.LastEntry()) {
 		assert.Equal("GetConnector MySQL: sql: database is closed", hook.LastEntry().Message)
 	}
-
 }

@@ -75,9 +75,9 @@
 				
 				<option value="file9">github.com/arckadious/fizzbuzz/response/apiresponse.go (92.3%)</option>
 				
-				<option value="file10">github.com/arckadious/fizzbuzz/server/server.go (0.0%)</option>
+				<option value="file10">github.com/arckadious/fizzbuzz/server/server.go (90.2%)</option>
 				
-				<option value="file11">github.com/arckadious/fizzbuzz/util/util.go (94.1%)</option>
+				<option value="file11">github.com/arckadious/fizzbuzz/util/util.go (94.7%)</option>
 				
 				</select>
 			</div>
@@ -629,7 +629,8 @@ func NewFizz(repo *Repository) *Fizz <span class="cov8" title="1">{
 
 // GetMostRequestUsed returns from database the most used request (if any) as well as the number of hits.
 func (rf *Fizz) GetMostRequestUsed() (msg string, hits int, noRows bool, err error) <span class="cov8" title="1">{
-        err = rf.db.GetConnector().QueryRow("SELECT MSG, count(*) as HITS FROM `MESSAGES_REQUEST` WHERE CHECKSUM IS NOT NULL AND CHECKSUM != '' GROUP BY CHECKSUM ORDER BY HITS DESC LIMIT 1;").Scan(&amp;msg, &amp;hits)
+        err = rf.db.GetConnector().QueryRow("SELECT MAX(MSG), count(*) as HITS FROM `MESSAGES_REQUEST` WHERE CHECKSUM IS NOT NULL AND CHECKSUM != '' GROUP BY CHECKSUM ORDER BY HITS DESC LIMIT 1;").Scan(&amp;msg, &amp;hits)
+        // NOTE - MAX(MSG) instead of MSG: Since version 5.7.5 Mysql has the "ONLY_FULL_GROUP_BY" flag by default enabled. This request select a random 'MSG' value, but the new flag doesn't allow it. See https://jira.mariadb.org/browse/MDEV-10426 for more details
 
         if err == sql.ErrNoRows </span><span class="cov8" title="1">{
                 noRows = true
@@ -798,7 +799,7 @@ type bodyLogWriter struct {
         body *bytes.Buffer
 }
 
-func (w bodyLogWriter) Write(b []byte) (int, error) <span class="cov0" title="0">{
+func (w bodyLogWriter) Write(b []byte) (int, error) <span class="cov8" title="1">{
         w.body.Write(b)
         return w.ResponseWriter.Write(b)
 }</span>
@@ -809,14 +810,14 @@ type Server struct {
 }
 
 // New constructor Server
-func New(cntnr *container.Container) *Server <span class="cov0" title="0">{
+func New(cntnr *container.Container) *Server <span class="cov8" title="1">{
         return &amp;Server{
                 container: cntnr,
         }
 }</span>
 
 // Run launch http server
-func (s *Server) Run() <span class="cov0" title="0">{
+func (s *Server) Run() <span class="cov8" title="1">{
 
         host := "0.0.0.0:"
 
@@ -833,14 +834,14 @@ func (s *Server) Run() <span class="cov0" title="0">{
                 IdleTimeout:  IdleTimeout,
                 Handler:      s.handler(),
         }
-        go func() </span><span class="cov0" title="0">{
-                if err := server.ListenAndServe(); err != nil &amp;&amp; err != http.ErrServerClosed </span><span class="cov0" title="0">{
+        go func() </span><span class="cov8" title="1">{
+                if err := server.ListenAndServe(); err != nil &amp;&amp; err != http.ErrServerClosed </span><span class="cov8" title="1">{
                         logrus.Fatal(err)
                 }</span>
         }()
 
         // Shutdown Database connections gracefully
-        <span class="cov0" title="0">defer s.container.Db.Shutdown()
+        <span class="cov8" title="1">defer s.container.Db.Shutdown()
 
         // Process signals channel
         sigChannel := make(chan os.Signal, 1)
@@ -860,14 +861,14 @@ func (s *Server) Run() <span class="cov0" title="0">{
 }
 
 // handler configures gin and set all REST API endpoints
-func (s *Server) handler() *gin.Engine <span class="cov0" title="0">{
+func (s *Server) handler() *gin.Engine <span class="cov8" title="1">{
 
         router := gin.New()
         if s.container.Conf.Env == "localhost" </span><span class="cov0" title="0">{
                 router.Use(gin.Logger())
         }</span>
 
-        <span class="cov0" title="0">router.HandleMethodNotAllowed = true
+        <span class="cov8" title="1">router.HandleMethodNotAllowed = true
 
         router.Use(gin.CustomRecovery(s.recoveryHandler))
         router.NoRoute(gin.HandlerFunc(s.notFoundHandler))
@@ -880,27 +881,27 @@ func (s *Server) handler() *gin.Engine <span class="cov0" title="0">{
         loggerRouter.Use(s.Logger())
 
         //ping
-        loggerRouter.GET("/ping", func(c *gin.Context) </span><span class="cov0" title="0">{
+        loggerRouter.GET("/ping", func(c *gin.Context) </span><span class="cov8" title="1">{
                 c.String(http.StatusOK, "Ping OK !")
         }</span>)
 
         //api subrouter v1
-        <span class="cov0" title="0">v1 := loggerRouter.Group(URLPrefixVersion)
+        <span class="cov8" title="1">v1 := loggerRouter.Group(URLPrefixVersion)
 
         //fizzbuzz routes
-        v1.POST(FizzBaseURI, func(c *gin.Context) </span><span class="cov0" title="0">{
+        v1.POST(FizzBaseURI, func(c *gin.Context) </span><span class="cov8" title="1">{
                 s.container.FizzAction.HandleFizz(c.Writer, c.Request)
         }</span>)
-        <span class="cov0" title="0">v1.GET(FizzStatisticsURI, func(c *gin.Context) </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">v1.GET(FizzStatisticsURI, func(c *gin.Context) </span><span class="cov8" title="1">{
                 s.container.FizzAction.HandleStatistics(c.Writer, c.Request)
         }</span>)
 
-        <span class="cov0" title="0">return router</span>
+        <span class="cov8" title="1">return router</span>
 
 }
 
 // recoveryHandler handles unexpected 'panic' call during process, and return a custom 500 internal server error.
-func (s *Server) recoveryHandler(c *gin.Context, err interface{}) <span class="cov0" title="0">{
+func (s *Server) recoveryHandler(c *gin.Context, err interface{}) <span class="cov8" title="1">{
         logrus.Error(err)
         response.New(
                 http.StatusInternalServerError,
@@ -916,7 +917,7 @@ func (s *Server) recoveryHandler(c *gin.Context, err interface{}) <span class="c
 }</span>
 
 // notFoundHandler handles API server response when endpoint couldn't be found
-func (s *Server) notFoundHandler(c *gin.Context) <span class="cov0" title="0">{
+func (s *Server) notFoundHandler(c *gin.Context) <span class="cov8" title="1">{
         response.New(
                 http.StatusNotFound,
                 cst.StatusError,
@@ -931,7 +932,7 @@ func (s *Server) notFoundHandler(c *gin.Context) <span class="cov0" title="0">{
 }</span>
 
 // methodNotAllowedHandler handles API server response when endpoint method is not allowed
-func (s *Server) methodNotAllowedHandler(c *gin.Context) <span class="cov0" title="0">{
+func (s *Server) methodNotAllowedHandler(c *gin.Context) <span class="cov8" title="1">{
         response.New(
                 http.StatusMethodNotAllowed,
                 cst.StatusError,
@@ -946,8 +947,8 @@ func (s *Server) methodNotAllowedHandler(c *gin.Context) <span class="cov0" titl
 }</span>
 
 // Logger send requests and response to database, and generate checksum if needed
-func (s *Server) Logger() gin.HandlerFunc <span class="cov0" title="0">{
-        return func(c *gin.Context) </span><span class="cov0" title="0">{
+func (s *Server) Logger() gin.HandlerFunc <span class="cov8" title="1">{
+        return func(c *gin.Context) </span><span class="cov8" title="1">{
 
                 //Generate unique ID to make link between request and its associated response (stored in a different table)
                 corID, _ := util.GenerateUID()
@@ -959,30 +960,30 @@ func (s *Server) Logger() gin.HandlerFunc <span class="cov0" title="0">{
                 }</span>
 
                 //Create a checksum for the current request, only if it's the main endpoint (/fizzbuzz) and data is valid.
-                <span class="cov0" title="0">var data model.Input
+                <span class="cov8" title="1">var data model.Input
                 checksum := ""
                 if c.Request.RequestURI == URLPrefixVersion+FizzBaseURI &amp;&amp; json.Unmarshal(body, &amp;data) == nil &amp;&amp; s.container.Validator.Struct(data) == nil </span><span class="cov0" title="0">{
                         checksum = util.GetMD5Hash(data.String())
                 }</span>
 
                 // Create copy to be used inside the goroutine - See Gin documentation : https://gin-gonic.com/docs/examples/goroutines-inside-a-middleware/
-                <span class="cov0" title="0">cCp := c.Copy()
+                <span class="cov8" title="1">cCp := c.Copy()
 
-                go func() </span><span class="cov0" title="0">{
+                go func() </span><span class="cov8" title="1">{
                         if err := s.container.Repo.LogToDB("request", string(body), Scheme+"://"+path.Join(cCp.Request.Host, cCp.Request.RequestURI), corID, checksum, ""); err != nil </span><span class="cov0" title="0">{
                                 logrus.Error(err)
                         }</span>
                 }()
 
                 // Intercept Writer in order to get response body
-                <span class="cov0" title="0">blw := &amp;bodyLogWriter{body: bytes.NewBufferString(""), ResponseWriter: c.Writer}
+                <span class="cov8" title="1">blw := &amp;bodyLogWriter{body: bytes.NewBufferString(""), ResponseWriter: c.Writer}
                 c.Writer = blw
 
                 c.Next()
 
                 status := blw.Status()
                 respBody := blw.body.String()
-                go func() </span><span class="cov0" title="0">{
+                go func() </span><span class="cov8" title="1">{
                         if err := s.container.Repo.LogToDB("response", respBody, "", corID, checksum, strconv.Itoa(status)); err != nil </span><span class="cov0" title="0">{
                                 logrus.Error(err)
                         }</span>
@@ -1023,6 +1024,11 @@ func ExtractBody(r *http.Request) (body []byte, err error) <span class="cov8" ti
                 err = errors.New("Extract body : request nil")
                 return
         }</span>
+
+        <span class="cov8" title="1">if r.Body == nil </span><span class="cov8" title="1">{
+                return
+        }</span>
+
         <span class="cov8" title="1">body, err = io.ReadAll(r.Body)
         if err != nil </span><span class="cov8" title="1">{
                 return

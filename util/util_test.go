@@ -39,6 +39,11 @@ func TestUtil(t *testing.T) {
 	assert.NoError(err)
 	assert.Equal("", string(body))
 
+	r, _ = http.NewRequest("GET", "http://google.fr", nil) //body nil
+	body, err = ExtractBody(r)
+	assert.NoError(err)
+	assert.Equal("", string(body))
+
 	r, _ = http.NewRequest("GET", "http://google.fr", iotest.ErrReader(errors.New("test"))) //body error
 	body, err = ExtractBody(r)
 	assert.Error(err)
