@@ -12,7 +12,7 @@ ARG GO_VERSION=1.19.8
 ARG AIR_VERSION=v1.43.0 
 
 RUN apt-get update -yq \
-&& apt-get install --no-install-recommends curl git ca-certificates -yq \
+&& apt-get install --no-install-recommends curl git ca-certificates gcc libc6-dev -yq \
 && apt-get clean \
 && rm -rf /var/lib/apt/lists/*
 

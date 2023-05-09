@@ -86,7 +86,7 @@ sh:
 	@$(DK_EXEC) sh
 
 tests:
-	@$(DK_EXEC) bash -c "go test -v -coverprofile tests/cover.out ./... && go tool cover -html tests/cover.out -o tests/cover.html"
+	@$(DK_EXEC) bash -c "CGO_ENABLED=1 go test -race -v -coverprofile tests/cover.out ./... && go tool cover -html tests/cover.out -o tests/cover.html"
 	@$(HTML_TEST_OPEN)
 	
 test: # example : ARGS=repository make test -> run package tests in repository folder

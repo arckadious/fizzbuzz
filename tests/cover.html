@@ -84,8 +84,17 @@
 			<div id="legend">
 				<span>not tracked</span>
 			
-				<span class="cov0">not covered</span>
-				<span class="cov8">covered</span>
+				<span class="cov0">no coverage</span>
+				<span class="cov1">low coverage</span>
+				<span class="cov2">*</span>
+				<span class="cov3">*</span>
+				<span class="cov4">*</span>
+				<span class="cov5">*</span>
+				<span class="cov6">*</span>
+				<span class="cov7">*</span>
+				<span class="cov8">*</span>
+				<span class="cov9">*</span>
+				<span class="cov10">high coverage</span>
 			
 			</div>
 		</div>
@@ -111,12 +120,12 @@ type FizzAction struct {
 }
 
 // New constructor FizzAction
-func New(mng *manager.Fizz) *FizzAction <span class="cov8" title="1">{
+func New(mng *manager.Fizz) *FizzAction <span class="cov1" title="1">{
         return &amp;FizzAction{mng}
 }</span>
 
 // HandleFizz extract and validate data
-func (ac *FizzAction) HandleFizz(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+func (ac *FizzAction) HandleFizz(w http.ResponseWriter, r *http.Request) <span class="cov10" title="3">{
 
         res := ac.mng.GetApiResponse() //generic response, unchanged, send 200 OK with json body response
         var input model.Input
@@ -124,18 +133,18 @@ func (ac *FizzAction) HandleFizz(w http.ResponseWriter, r *http.Request) <span c
         //extract input
         defer r.Body.Close()
         err := json.NewDecoder(r.Body).Decode(&amp;input)
-        if err != nil </span><span class="cov8" title="1">{
+        if err != nil </span><span class="cov1" title="1">{
                 res.SetErrorResponse(http.StatusBadRequest, []response.ApiError{{Code: cst.ErrorInvalidData, Message: "Data JSON input bad format."}}).WriteJSONResponse(w)
                 return
         }</span>
 
         //Validate input
-        <span class="cov8" title="1">if err := ac.mng.GetValidator().Struct(input); err != nil </span><span class="cov8" title="1">{
+        <span class="cov6" title="2">if err := ac.mng.GetValidator().Struct(input); err != nil </span><span class="cov1" title="1">{
                 res.SetErrorResponse(http.StatusBadRequest, []response.ApiError{{Code: cst.ErrorInvalidField, Message: err.Error()}}).WriteJSONResponse(w)
                 return
         }</span>
 
-        <span class="cov8" title="1">ac.mng.HandleFizz(w, input)</span>
+        <span class="cov1" title="1">ac.mng.HandleFizz(w, input)</span>
 
 }
 
@@ -184,7 +193,7 @@ type Config struct {
 }
 
 // UnmarshalJSON : lower case on string fields level and Env, to avoid case sensitive
-func (c *Config) UnmarshalJSON(data []byte) error <span class="cov8" title="1">{
+func (c *Config) UnmarshalJSON(data []byte) error <span class="cov7" title="3">{
 
         type TmpConfig Config //avoid infinite loop stack exceed.
 
@@ -195,7 +204,7 @@ func (c *Config) UnmarshalJSON(data []byte) error <span class="cov8" title="1">{
                 return err
         }</span>
 
-        <span class="cov8" title="1">*c = Config(tmpConf)
+        <span class="cov7" title="3">*c = Config(tmpConf)
 
         (*c).Env = strings.ToLower((*c).Env)
         (*c).Level = strings.ToLower((*c).Level)
@@ -204,20 +213,20 @@ func (c *Config) UnmarshalJSON(data []byte) error <span class="cov8" title="1">{
 }
 
 // GetRootPath return workspace path
-func (c *Config) GetRootPath() string <span class="cov8" title="1">{
+func (c *Config) GetRootPath() string <span class="cov4" title="2">{
 
         return c.rootPath
 }</span>
 
 // InitRootPath init workspace path
-func (c *Config) InitRootPath(val string) <span class="cov8" title="1">{
-        if c.rootPath == "" </span><span class="cov8" title="1">{
+func (c *Config) InitRootPath(val string) <span class="cov10" title="5">{
+        if c.rootPath == "" </span><span class="cov8" title="4">{
                 c.rootPath = val
         }</span>
 }
 
 // New constructor Config
-func New(fileName string, validator validator.Validate) (c *Config, err error) <span class="cov8" title="1">{
+func New(fileName string, validator validator.Validate) (c *Config, err error) <span class="cov10" title="5">{
 
         c = &amp;Config{}
 
@@ -237,54 +246,54 @@ func New(fileName string, validator validator.Validate) (c *Config, err error) <
                 //PadLevelText:    true,
         })
 
-        <span class="cov8" title="1">configFile, err := os.Open(fileName)
-        if err != nil </span><span class="cov8" title="1">{
+        <span class="cov10" title="5">configFile, err := os.Open(fileName)
+        if err != nil </span><span class="cov1" title="1">{
                 return
         }</span>
-        <span class="cov8" title="1">defer configFile.Close()
+        <span class="cov8" title="4">defer configFile.Close()
 
         err = json.NewDecoder(configFile).Decode(c)
-        if err != nil </span><span class="cov8" title="1">{
+        if err != nil </span><span class="cov1" title="1">{
                 return
         }</span>
 
         // Set Rootpath
-        <span class="cov8" title="1">rootPath, err := os.Getwd()
+        <span class="cov7" title="3">rootPath, err := os.Getwd()
         if err != nil </span><span class="cov0" title="0">{
                 return
         }</span>
-        <span class="cov8" title="1">c.InitRootPath(rootPath)
+        <span class="cov7" title="3">c.InitRootPath(rootPath)
 
         // Set log error Level
         level, err := logrus.ParseLevel(c.Level)
-        if err == nil </span><span class="cov8" title="1">{
+        if err == nil </span><span class="cov7" title="3">{
                 logrus.SetLevel(level)
         }</span> else<span class="cov0" title="0"> {
                 logrus.SetLevel(logrus.DebugLevel)
         }</span>
 
         // Set reportCaller logrus
-        <span class="cov8" title="1">logrus.SetReportCaller(c.ReportCaller)
+        <span class="cov7" title="3">logrus.SetReportCaller(c.ReportCaller)
 
         // Set Gin mode
-        if c.Env != "localhost" </span><span class="cov8" title="1">{
+        if c.Env != "localhost" </span><span class="cov4" title="2">{
                 gin.SetMode(gin.ReleaseMode)
-        }</span> else<span class="cov8" title="1"> {
+        }</span> else<span class="cov1" title="1"> {
                 gin.SetMode(gin.DebugMode)
                 var f *os.File
                 f, err := os.OpenFile("gin.log", os.O_APPEND|os.O_CREATE|os.O_RDWR, 0644)
                 if err != nil </span><span class="cov0" title="0">{
                         logrus.Fatal(err)
                 }</span>
-                <span class="cov8" title="1">gin.DefaultWriter = f</span>
+                <span class="cov1" title="1">gin.DefaultWriter = f</span>
         }
 
         //validate fields from config
-        <span class="cov8" title="1">if err = validator.Struct(c); err != nil </span><span class="cov8" title="1">{
+        <span class="cov7" title="3">if err = validator.Struct(c); err != nil </span><span class="cov1" title="1">{
                 return
         }</span>
 
-        <span class="cov8" title="1">return</span>
+        <span class="cov4" title="2">return</span>
 }
 </pre>
 		
@@ -387,7 +396,7 @@ type DB struct {
 }
 
 // New constructor DB
-func New(cf *config.Config) *DB <span class="cov8" title="1">{
+func New(cf *config.Config) *DB <span class="cov1" title="1">{
         database := DB{
                 cf: cf,
         }
@@ -398,34 +407,34 @@ func New(cf *config.Config) *DB <span class="cov8" title="1">{
                 logrus.Fatal(err)
         }</span>
 
-        <span class="cov8" title="1">return &amp;database</span>
+        <span class="cov1" title="1">return &amp;database</span>
 
 }
 
-func (db *DB) GetDefaultContext() (context.Context, context.CancelFunc) <span class="cov8" title="1">{
+func (db *DB) GetDefaultContext() (context.Context, context.CancelFunc) <span class="cov1" title="1">{
         ctx, cancelFunc := context.WithTimeout(context.Background(), queryDefaultTimeout*time.Millisecond) //Best practice to set query timeouts for all queries, to avoid slow queries.
         return ctx, cancelFunc
 }</span>
 
 // GetConnector returns sql connector
-func (db *DB) GetConnector() *sql.DB <span class="cov8" title="1">{
+func (db *DB) GetConnector() *sql.DB <span class="cov1" title="1">{
         return db.dbConnector
 }</span>
 
 // Shutdown closes the database and prevents new queries from starting. Close then waits for all queries that have started processing on the server to finish.
-func (db *DB) Shutdown() <span class="cov8" title="1">{
-        if db.dbConnector != nil </span><span class="cov8" title="1">{
+func (db *DB) Shutdown() <span class="cov1" title="1">{
+        if db.dbConnector != nil </span><span class="cov1" title="1">{
                 err := db.dbConnector.Close()
                 if err != nil </span><span class="cov0" title="0">{
                         logrus.Warn(err)
                         return
                 }</span>
-                <span class="cov8" title="1">logrus.Info("Shutdown mysql connections OK")</span>
+                <span class="cov1" title="1">logrus.Info("Shutdown mysql connections OK")</span>
         }
 }
 
 // connect establishes connection between API and database
-func (db *DB) connect() (dbConnector *sql.DB, err error) <span class="cov8" title="1">{
+func (db *DB) connect() (dbConnector *sql.DB, err error) <span class="cov10" title="2">{
         dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=%s&amp;parseTime=true&amp;timeout=%ds",
                 db.cf.Database.Username,
                 db.cf.Database.Password,
@@ -440,12 +449,12 @@ func (db *DB) connect() (dbConnector *sql.DB, err error) <span class="cov8" titl
                 return
         }</span>
 
-        <span class="cov8" title="1">err = dbConnector.Ping()
-        if err != nil </span><span class="cov8" title="1">{
+        <span class="cov10" title="2">err = dbConnector.Ping()
+        if err != nil </span><span class="cov1" title="1">{
                 return
         }</span>
 
-        <span class="cov8" title="1">dbConnector.SetMaxOpenConns(db.cf.Database.MaxOpenConns)
+        <span class="cov1" title="1">dbConnector.SetMaxOpenConns(db.cf.Database.MaxOpenConns)
         dbConnector.SetMaxIdleConns(db.cf.Database.MaxIdleConns)
         dbConnector.SetConnMaxLifetime(db.cf.Database.MaxConnLifeTime * time.Second)
 
@@ -476,7 +485,7 @@ type Fizz struct {
 }
 
 // NewFizz constructor Manager child Fizz
-func NewFizz(m *Manager, repo repository.FizzInterface) *Fizz <span class="cov8" title="1">{
+func NewFizz(m *Manager, repo repository.FizzInterface) *Fizz <span class="cov1" title="1">{
         return &amp;Fizz{
                 Manager:  m,
                 repoFizz: repo,
@@ -484,62 +493,62 @@ func NewFizz(m *Manager, repo repository.FizzInterface) *Fizz <span class="cov8"
 }</span>
 
 // HandleFizz writes to 'w' a list of strings with numbers from 1 to limit, where: all multiples specified are replaced by text
-func (m *Fizz) HandleFizz(w http.ResponseWriter, input model.Input) <span class="cov8" title="1">{
+func (m *Fizz) HandleFizz(w http.ResponseWriter, input model.Input) <span class="cov3" title="5">{
 
         res := m.GetApiResponse()
         var tab []string
-        for i := 1; i &lt;= input.Limit; i++ </span><span class="cov8" title="1">{
+        for i := 1; i &lt;= input.Limit; i++ </span><span class="cov9" title="95">{
                 var elem string
-                for _, multiple := range input.Multiples </span><span class="cov8" title="1">{
-                        if i%multiple.IntX == 0 </span><span class="cov8" title="1">{
+                for _, multiple := range input.Multiples </span><span class="cov10" title="150">{
+                        if i%multiple.IntX == 0 </span><span class="cov7" title="42">{
                                 elem += multiple.StrX
                         }</span>
                 }
 
                 //no multiple -&gt; add number
-                <span class="cov8" title="1">if elem == "" </span><span class="cov8" title="1">{
+                <span class="cov9" title="95">if elem == "" </span><span class="cov8" title="57">{
                         tab = append(tab, strconv.Itoa(i))
-                }</span> else<span class="cov8" title="1"> {
+                }</span> else<span class="cov7" title="38"> {
                         tab = append(tab, elem)
                 }</span>
 
         }
 
-        <span class="cov8" title="1">output := strings.Join(tab, ",")
+        <span class="cov3" title="5">output := strings.Join(tab, ",")
 
         res.SetData(output).WriteJSONResponse(w)</span>
 }
 
 // HandleStatistics write to 'w' the parameters corresponding to the most used request, as well as the number of hits for this request.
-func (m *Fizz) HandleStatistics(w http.ResponseWriter) <span class="cov8" title="1">{
+func (m *Fizz) HandleStatistics(w http.ResponseWriter) <span class="cov3" title="5">{
 
         res := m.GetApiResponse()
 
         msg, hits, noRows, err := m.repoFizz.GetMostRequestUsed()
-        if err != nil </span><span class="cov8" title="1">{
-                if noRows </span><span class="cov8" title="1">{ // Database does not contain rows with checksum not empty
+        if err != nil </span><span class="cov2" title="2">{
+                if noRows </span><span class="cov1" title="1">{ // Database does not contain rows with checksum not empty
                         res.StatusCode = http.StatusPartialContent
                         res.WriteJSONResponse(w)
                         return
                 }</span>
-                <span class="cov8" title="1">res.SetErrorResponse(http.StatusInternalServerError, []response.ApiError{{Code: cst.ErrorInternalServerError, Message: err.Error()}}).WriteJSONResponse(w)
+                <span class="cov1" title="1">res.SetErrorResponse(http.StatusInternalServerError, []response.ApiError{{Code: cst.ErrorInternalServerError, Message: err.Error()}}).WriteJSONResponse(w)
                 return</span>
         }
 
-        <span class="cov8" title="1">var msgStruct model.Input
+        <span class="cov2" title="3">var msgStruct model.Input
         err = json.Unmarshal([]byte(msg), &amp;msgStruct)
-        if err != nil </span><span class="cov8" title="1">{
+        if err != nil </span><span class="cov1" title="1">{
                 res.SetErrorResponse(http.StatusInternalServerError, []response.ApiError{{Code: cst.ErrorInternalServerError, Message: err.Error()}}).WriteJSONResponse(w)
                 return
         }</span>
 
         //Validate data coming from database
-        <span class="cov8" title="1">if err := m.GetValidator().Struct(msgStruct); err != nil </span><span class="cov8" title="1">{
+        <span class="cov2" title="2">if err := m.GetValidator().Struct(msgStruct); err != nil </span><span class="cov1" title="1">{
                 res.SetErrorResponse(http.StatusInternalServerError, []response.ApiError{{Code: cst.ErrorInternalServerError, Message: err.Error()}}).WriteJSONResponse(w)
                 return
         }</span>
 
-        <span class="cov8" title="1">res.SetData(model.Output{Hits: hits, Request: msgStruct}).WriteJSONResponse(w)</span>
+        <span class="cov1" title="1">res.SetData(model.Output{Hits: hits, Request: msgStruct}).WriteJSONResponse(w)</span>
 }
 </pre>
 		
@@ -563,17 +572,17 @@ type Manager struct {
 }
 
 // New constructor Manager
-func New(cf *config.Config, apiResponse response.ApiResponse, v *validator.Validate, repo repository.RepositoryInterface) *Manager <span class="cov8" title="1">{
+func New(cf *config.Config, apiResponse response.ApiResponse, v *validator.Validate, repo repository.RepositoryInterface) *Manager <span class="cov3" title="2">{
         return &amp;Manager{cf, apiResponse, v, repo}
 }</span>
 
 // GetApiResponse returns the Api Response
-func (m *Manager) GetApiResponse() response.ApiResponse <span class="cov8" title="1">{
+func (m *Manager) GetApiResponse() response.ApiResponse <span class="cov10" title="12">{
         return m.apiResponse
 }</span>
 
 // GetValidator returns the validator
-func (m *Manager) GetValidator() *validator.Validate <span class="cov8" title="1">{
+func (m *Manager) GetValidator() *validator.Validate <span class="cov6" title="4">{
         return m.validator
 }</span>
 </pre>
@@ -606,17 +615,17 @@ type Output struct {
 }
 
 // String returns data in String format
-func (input *Input) String() (val string) <span class="cov8" title="1">{
-        if input == nil </span><span class="cov8" title="1">{
+func (input *Input) String() (val string) <span class="cov10" title="5">{
+        if input == nil </span><span class="cov1" title="1">{
                 logrus.Error("input.String() : struct nil")
                 return
         }</span>
-        <span class="cov8" title="1">val += "{["
-        for _, elem := range input.Multiples </span><span class="cov8" title="1">{
+        <span class="cov8" title="4">val += "{["
+        for _, elem := range input.Multiples </span><span class="cov7" title="3">{
                 val += "{" + elem.StrX + " " + strconv.Itoa(elem.IntX) + "} "
         }</span>
 
-        <span class="cov8" title="1">return strings.TrimRight(val, " ") + "] " + strconv.Itoa(input.Limit) + "}"</span>
+        <span class="cov8" title="4">return strings.TrimRight(val, " ") + "] " + strconv.Itoa(input.Limit) + "}"</span>
 }
 </pre>
 		
@@ -637,7 +646,7 @@ type FizzInterface interface { // Use an interface as prototype, to allow mocks 
 }
 
 // New constructor Repository child Fizz
-func NewFizz(repo *Repository) *Fizz <span class="cov8" title="1">{
+func NewFizz(repo *Repository) *Fizz <span class="cov1" title="1">{
         return &amp;Fizz{
                 repo,
         }
@@ -645,18 +654,18 @@ func NewFizz(repo *Repository) *Fizz <span class="cov8" title="1">{
 }</span>
 
 // GetMostRequestUsed returns from database the most used request (if any) as well as the number of hits.
-func (rf *Fizz) GetMostRequestUsed() (msg string, hits int, noRows bool, err error) <span class="cov8" title="1">{
+func (rf *Fizz) GetMostRequestUsed() (msg string, hits int, noRows bool, err error) <span class="cov10" title="3">{
         ctx, cancel := rf.db.GetDefaultContext()
         defer cancel()
 
         err = rf.db.GetConnector().QueryRowContext(ctx, "SELECT MAX(MSG), count(*) as HITS FROM `MESSAGES_REQUEST` WHERE CHECKSUM IS NOT NULL AND CHECKSUM != '' GROUP BY CHECKSUM ORDER BY HITS DESC LIMIT 1;").Scan(&amp;msg, &amp;hits)
         // NOTE - MAX(MSG) instead of MSG: Since version 5.7.5 Mysql has the "ONLY_FULL_GROUP_BY" flag by default enabled. This request select a random 'MSG' value, but the new flag doesn't allow it. See https://jira.mariadb.org/browse/MDEV-10426 for more details
 
-        if err == sql.ErrNoRows </span><span class="cov8" title="1">{
+        if err == sql.ErrNoRows </span><span class="cov1" title="1">{
                 noRows = true
         }</span>
 
-        <span class="cov8" title="1">return</span>
+        <span class="cov10" title="3">return</span>
 }
 </pre>
 		
@@ -682,41 +691,41 @@ type RepositoryInterface interface {
 }
 
 // New constructor Repository
-func New(Db *database.DB) *Repository <span class="cov8" title="1">{
+func New(Db *database.DB) *Repository <span class="cov3" title="2">{
         return &amp;Repository{Db}
 }</span>
 
 // LogToDB stores requests and responses in database.
-func (r *Repository) LogToDB(logType, msg, url, corID, checksum, status string) (err error) <span class="cov8" title="1">{
-        if corID == "" </span><span class="cov8" title="1">{
+func (r *Repository) LogToDB(logType, msg, url, corID, checksum, status string) (err error) <span class="cov10" title="11">{
+        if corID == "" </span><span class="cov1" title="1">{
                 return errors.New("Logger coudn't audit data: corID empty")
         }</span>
 
-        <span class="cov8" title="1">hostname, _ := os.Hostname()
+        <span class="cov9" title="10">hostname, _ := os.Hostname()
         sql := ""
         vals := []interface{}{}
 
         switch strings.ToUpper(logType) </span>{
-        case "REQUEST":<span class="cov8" title="1">
+        case "REQUEST":<span class="cov8" title="8">
                 sql = "INSERT INTO `MESSAGES_REQUEST` (`MSG`, `COR_ID`, `HOST`, `APP_NAME`, `SERVICE_ADDRESS`, `CHECKSUM`) VALUES (?, ?, ?, ?, ?, ?);"
                 vals = append(vals, msg, corID, hostname, cst.AppName, url, checksum)
                 break</span>
-        case "RESPONSE":<span class="cov8" title="1">
+        case "RESPONSE":<span class="cov1" title="1">
                 sql = "INSERT INTO `MESSAGES_RESPONSE` (`MSG`, `COR_ID`, `STATUS`) VALUES (?, ?, ?);"
                 vals = append(vals, msg, corID, status)
                 break</span>
-        default:<span class="cov8" title="1">
+        default:<span class="cov1" title="1">
                 return errors.New("Logger coudn't audit data: Logger Type unkwown.")</span>
         }
 
-        <span class="cov8" title="1">ctx, cancel := r.db.GetDefaultContext()
+        <span class="cov9" title="9">ctx, cancel := r.db.GetDefaultContext()
         defer cancel()
 
         _, err = r.db.GetConnector().ExecContext(ctx, sql, vals...)
-        if err != nil </span><span class="cov8" title="1">{
+        if err != nil </span><span class="cov1" title="1">{
                 return errors.New("Logger coudn't send " + logType + " data: " + err.Error())
         }</span>
-        <span class="cov8" title="1">return</span>
+        <span class="cov8" title="8">return</span>
 }
 </pre>
 		
@@ -745,7 +754,7 @@ type ApiError struct {
 }
 
 // New constructor ApiResponse : create a new response template
-func New(statusCode int, status string, errorMessages []ApiError, data interface{}) *ApiResponse <span class="cov8" title="1">{
+func New(statusCode int, status string, errorMessages []ApiError, data interface{}) *ApiResponse <span class="cov10" title="3">{
         return &amp;ApiResponse{
                 StatusCode: statusCode,
                 Status:     status,
@@ -755,13 +764,13 @@ func New(statusCode int, status string, errorMessages []ApiError, data interface
 }</span>
 
 // Setdata set api response content data
-func (res *ApiResponse) SetData(data interface{}) *ApiResponse <span class="cov8" title="1">{
+func (res *ApiResponse) SetData(data interface{}) *ApiResponse <span class="cov1" title="1">{
         res.Data = data
         return res
 }</span>
 
 // SetErrorResponse set custom error response to be returned
-func (res *ApiResponse) SetErrorResponse(statusCode int, messages []ApiError) *ApiResponse <span class="cov8" title="1">{
+func (res *ApiResponse) SetErrorResponse(statusCode int, messages []ApiError) *ApiResponse <span class="cov1" title="1">{
         res.StatusCode = statusCode
         res.Status = cst.StatusError
         res.Messages = messages
@@ -769,14 +778,14 @@ func (res *ApiResponse) SetErrorResponse(statusCode int, messages []ApiError) *A
 }</span>
 
 // WriteJSONResponse writes json output to json response
-func (res *ApiResponse) WriteJSONResponse(w http.ResponseWriter) <span class="cov8" title="1">{
+func (res *ApiResponse) WriteJSONResponse(w http.ResponseWriter) <span class="cov10" title="3">{
         w.Header().Set("Content-Type", "application/json")
         w.WriteHeader(res.StatusCode)
         resp, err := json.Marshal(res)
         if err != nil </span><span class="cov0" title="0">{
                 logrus.Error(err)
         }</span>
-        <span class="cov8" title="1">w.Write(resp)</span>
+        <span class="cov10" title="3">w.Write(resp)</span>
 }
 </pre>
 		
@@ -822,7 +831,7 @@ type bodyLogWriter struct {
         body *bytes.Buffer
 }
 
-func (w bodyLogWriter) Write(b []byte) (int, error) <span class="cov8" title="1">{
+func (w bodyLogWriter) Write(b []byte) (int, error) <span class="cov10" title="5">{
         w.body.Write(b)
         return w.ResponseWriter.Write(b)
 }</span>
@@ -833,14 +842,14 @@ type Server struct {
 }
 
 // New constructor Server
-func New(cntnr *container.Container) *Server <span class="cov8" title="1">{
+func New(cntnr *container.Container) *Server <span class="cov4" title="2">{
         return &amp;Server{
                 container: cntnr,
         }
 }</span>
 
 // Run launch http server
-func (s *Server) Run() <span class="cov8" title="1">{
+func (s *Server) Run() <span class="cov4" title="2">{
 
         host := "0.0.0.0:"
 
@@ -857,14 +866,14 @@ func (s *Server) Run() <span class="cov8" title="1">{
                 IdleTimeout:  IdleTimeout,
                 Handler:      s.handler(),
         }
-        go func() </span><span class="cov8" title="1">{
-                if err := server.ListenAndServe(); err != nil &amp;&amp; err != http.ErrServerClosed </span><span class="cov8" title="1">{
+        go func() </span><span class="cov4" title="2">{
+                if err := server.ListenAndServe(); err != nil &amp;&amp; err != http.ErrServerClosed </span><span class="cov1" title="1">{
                         logrus.Fatal(err)
                 }</span>
         }()
 
         // Shutdown Database connections gracefully
-        <span class="cov8" title="1">defer s.container.Db.Shutdown()
+        <span class="cov4" title="2">defer s.container.Db.Shutdown()
 
         // Process signals channel
         sigChannel := make(chan os.Signal, 1)
@@ -884,14 +893,14 @@ func (s *Server) Run() <span class="cov8" title="1">{
 }
 
 // handler configures gin and set all REST API endpoints
-func (s *Server) handler() *gin.Engine <span class="cov8" title="1">{
+func (s *Server) handler() *gin.Engine <span class="cov10" title="5">{
 
         router := gin.New()
         if s.container.Conf.Env == "localhost" </span><span class="cov0" title="0">{
                 router.Use(gin.Logger())
         }</span>
 
-        <span class="cov8" title="1">router.HandleMethodNotAllowed = true
+        <span class="cov10" title="5">router.HandleMethodNotAllowed = true
         router.NoRoute(gin.HandlerFunc(s.notFoundHandler))
         router.NoMethod(gin.HandlerFunc(s.methodNotAllowedHandler))
 
@@ -903,27 +912,27 @@ func (s *Server) handler() *gin.Engine <span class="cov8" title="1">{
         subRouter.Use(gin.CustomRecovery(s.recoveryHandler))
 
         //ping
-        subRouter.GET("/ping", func(c *gin.Context) </span><span class="cov8" title="1">{
+        subRouter.GET("/ping", func(c *gin.Context) </span><span class="cov1" title="1">{
                 c.String(http.StatusOK, "Ping OK !")
         }</span>)
 
         //api subrouter v1
-        <span class="cov8" title="1">v1 := subRouter.Group(URLPrefixVersion)
+        <span class="cov10" title="5">v1 := subRouter.Group(URLPrefixVersion)
 
         //fizzbuzz routes
-        v1.POST(FizzBaseURI, func(c *gin.Context) </span><span class="cov8" title="1">{
+        v1.POST(FizzBaseURI, func(c *gin.Context) </span><span class="cov4" title="2">{
                 s.container.FizzAction.HandleFizz(c.Writer, c.Request)
         }</span>)
-        <span class="cov8" title="1">v1.GET(FizzStatisticsURI, func(c *gin.Context) </span><span class="cov8" title="1">{
+        <span class="cov10" title="5">v1.GET(FizzStatisticsURI, func(c *gin.Context) </span><span class="cov4" title="2">{
                 s.container.FizzAction.HandleStatistics(c.Writer, c.Request)
         }</span>)
 
-        <span class="cov8" title="1">return router</span>
+        <span class="cov10" title="5">return router</span>
 
 }
 
 // recoveryHandler handles unexpected 'panic' call during process, and return a custom 500 internal server error.
-func (s *Server) recoveryHandler(c *gin.Context, err interface{}) <span class="cov8" title="1">{
+func (s *Server) recoveryHandler(c *gin.Context, err interface{}) <span class="cov1" title="1">{
         logrus.Error(err)
         response.New(
                 http.StatusInternalServerError,
@@ -939,7 +948,7 @@ func (s *Server) recoveryHandler(c *gin.Context, err interface{}) <span class="c
 }</span>
 
 // notFoundHandler handles API server response when endpoint couldn't be found
-func (s *Server) notFoundHandler(c *gin.Context) <span class="cov8" title="1">{
+func (s *Server) notFoundHandler(c *gin.Context) <span class="cov1" title="1">{
         response.New(
                 http.StatusNotFound,
                 cst.StatusError,
@@ -954,7 +963,7 @@ func (s *Server) notFoundHandler(c *gin.Context) <span class="cov8" title="1">{
 }</span>
 
 // methodNotAllowedHandler handles API server response when endpoint method is not allowed
-func (s *Server) methodNotAllowedHandler(c *gin.Context) <span class="cov8" title="1">{
+func (s *Server) methodNotAllowedHandler(c *gin.Context) <span class="cov1" title="1">{
         response.New(
                 http.StatusMethodNotAllowed,
                 cst.StatusError,
@@ -969,8 +978,8 @@ func (s *Server) methodNotAllowedHandler(c *gin.Context) <span class="cov8" titl
 }</span>
 
 // Logger send requests and response to database, and generate checksum if needed
-func (s *Server) Logger() gin.HandlerFunc <span class="cov8" title="1">{
-        return func(c *gin.Context) </span><span class="cov8" title="1">{
+func (s *Server) Logger() gin.HandlerFunc <span class="cov10" title="5">{
+        return func(c *gin.Context) </span><span class="cov10" title="5">{
 
                 body, err := util.ExtractBody(c.Request)
                 if err != nil </span><span class="cov0" title="0">{
@@ -979,7 +988,7 @@ func (s *Server) Logger() gin.HandlerFunc <span class="cov8" title="1">{
                 }</span>
 
                 // Intercept Writer in order to get response body
-                <span class="cov8" title="1">blw := &amp;bodyLogWriter{body: bytes.NewBufferString(""), ResponseWriter: c.Writer}
+                <span class="cov10" title="5">blw := &amp;bodyLogWriter{body: bytes.NewBufferString(""), ResponseWriter: c.Writer}
                 c.Writer = blw
 
                 c.Next()
@@ -989,33 +998,33 @@ func (s *Server) Logger() gin.HandlerFunc <span class="cov8" title="1">{
 
                 cCp := c.Copy()
 
-                go func() </span><span class="cov8" title="1">{
-                        defer func() </span><span class="cov8" title="1">{ // Ensure that Logger does not disturb anything if any unexpected panic should occur, even if it shouldn't.
+                go func() </span><span class="cov10" title="5">{
+                        defer func() </span><span class="cov4" title="2">{ // Ensure that Logger does not disturb anything if any unexpected panic should occur, even if it shouldn't.
                                 if err := recover(); err != nil </span><span class="cov0" title="0">{
                                         logrus.Error(err)
                                 }</span>
                         }()
 
                         // Generate unique ID to make link between request and its associated response (stored in a different table)
-                        <span class="cov8" title="1">corID, err := util.GenerateUID()
+                        <span class="cov10" title="5">corID, err := util.GenerateUID()
                         if err != nil </span><span class="cov0" title="0">{
                                 logrus.Error(err)
                                 return
                         }</span>
 
                         // Create a checksum for the current request, only if it's the main endpoint (/fizzbuzz) and data is valid.
-                        <span class="cov8" title="1">var data model.Input
+                        <span class="cov10" title="5">var data model.Input
                         checksum := ""
 
                         if cCp.Request.RequestURI == URLPrefixVersion+FizzBaseURI &amp;&amp; json.Unmarshal(body, &amp;data) == nil &amp;&amp; s.container.Validator.Struct(data) == nil </span><span class="cov0" title="0">{
                                 checksum = util.GetMD5Hash(data.String())
                         }</span>
 
-                        <span class="cov8" title="1">if err := s.container.Repo.LogToDB("request", string(body), Scheme+"://"+path.Join(cCp.Request.Host, cCp.Request.RequestURI), corID, checksum, ""); err != nil </span><span class="cov8" title="1">{
+                        <span class="cov10" title="5">if err := s.container.Repo.LogToDB("request", string(body), Scheme+"://"+path.Join(cCp.Request.Host, cCp.Request.RequestURI), corID, checksum, ""); err != nil </span><span class="cov4" title="2">{
                                 logrus.Error(err)
                         }</span>
 
-                        <span class="cov8" title="1">if err := s.container.Repo.LogToDB("response", respBody, "", corID, "", strconv.Itoa(status)); err != nil </span><span class="cov8" title="1">{
+                        <span class="cov4" title="2">if err := s.container.Repo.LogToDB("response", respBody, "", corID, "", strconv.Itoa(status)); err != nil </span><span class="cov4" title="2">{
                                 logrus.Error(err)
                         }</span>
                 }()
@@ -1039,38 +1048,38 @@ import (
 )
 
 // GenerateUID creates a unique ID (used to make a corelation between http requests and responses in database)
-func GenerateUID() (uuid string, err error) <span class="cov8" title="1">{
+func GenerateUID() (uuid string, err error) <span class="cov1" title="1">{
         b := make([]byte, 16)
         _, err = rand.Read(b)
         if err != nil </span><span class="cov0" title="0">{
                 return
-        }</span> else<span class="cov8" title="1"> {
+        }</span> else<span class="cov1" title="1"> {
                 uuid = fmt.Sprintf("%X-%X-%X-%X-%X", b[0:4], b[4:6], b[6:8], b[8:10], b[10:])
         }</span>
-        <span class="cov8" title="1">return</span>
+        <span class="cov1" title="1">return</span>
 }
 
 // ExtractBody extracts a copy of http request body
-func ExtractBody(r *http.Request) (body []byte, err error) <span class="cov8" title="1">{
-        if r == nil </span><span class="cov8" title="1">{
+func ExtractBody(r *http.Request) (body []byte, err error) <span class="cov10" title="5">{
+        if r == nil </span><span class="cov1" title="1">{
                 err = errors.New("Extract body : request nil")
                 return
         }</span>
 
-        <span class="cov8" title="1">if r.Body == nil </span><span class="cov8" title="1">{
+        <span class="cov8" title="4">if r.Body == nil </span><span class="cov1" title="1">{
                 return
         }</span>
 
-        <span class="cov8" title="1">body, err = io.ReadAll(r.Body)
-        if err != nil </span><span class="cov8" title="1">{
+        <span class="cov7" title="3">body, err = io.ReadAll(r.Body)
+        if err != nil </span><span class="cov1" title="1">{
                 return
         }</span>
-        <span class="cov8" title="1">r.Body = io.NopCloser(bytes.NewReader(body))
+        <span class="cov4" title="2">r.Body = io.NopCloser(bytes.NewReader(body))
         return</span>
 }
 
 // GetMD5Hash return MD5 hash from text
-func GetMD5Hash(text string) string <span class="cov8" title="1">{
+func GetMD5Hash(text string) string <span class="cov4" title="2">{
         hasher := md5.New()
         hasher.Write([]byte(text))
         return hex.EncodeToString(hasher.Sum(nil))

@@ -109,12 +109,25 @@ func TestServerHandlers(t *testing.T) {
 // Test endpoints and Logger middleware if database is closed (database unavailable approach, we only want to see errors)
 func TestServerDBUnavailable(t *testing.T) {
 
-	assert, _, hook := InitServer(t)
+	assert, require, hook := InitServer(t)
 
-	router := sG.handler()
+	cf, err := config.New("../tests/mock/parametersOK.json", *validator.New())
+	cf.Port = 8008
+	require.NoError(err)
+
+	validator := validator.New()
+	s := New( // Use a new server for database down cases
+		container.New(
+			cf,
+			validator,
+			database.New(cf),
+		),
+	)
+
+	router := s.handler()
 
 	// Endpoint /v1/statistics database closed
-	sG.container.Db.Shutdown()
+	s.container.Db.Shutdown()
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/v1/statistics", nil)
 	router.ServeHTTP(w, req)
@@ -144,11 +157,6 @@ func TestServerDBUnavailable(t *testing.T) {
 	if assert.Eventually(func() bool { return hook.LastEntry() != nil }, 5*time.Second, 10*time.Millisecond) {
 		assert.Equal("Logger coudn't send response data: sql: database is closed", hook.LastEntry().Message)
 	}
-
-	// Reconnect to database for other package tests
-	newDB := database.New(sG.container.Conf)
-	dbconnector := sG.container.Db.GetConnector()
-	*dbconnector = *newDB.GetConnector()
 }
 
 // Simple call to endpoints
