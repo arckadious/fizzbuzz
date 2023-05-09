@@ -70,8 +70,19 @@ func TestServerErrorBindPortAlreadyUsed(t *testing.T) {
 	<-ch
 
 	assert.True(fatal)
+
 	if assert.NotNil(hook.LastEntry()) {
-		assert.Contains(hook.LastEntry().Message, "address already in use")
+		var fatalEntry logrus.Entry
+		isFatal := false
+		for _, entry := range hook.Entries {
+			if entry.Level == logrus.FatalLevel {
+				fatalEntry = entry
+				isFatal = true
+			}
+		}
+		if assert.True(isFatal) {
+			assert.Contains(fatalEntry.Message, "address already in use")
+		}
 	}
 	logrus.StandardLogger().ExitFunc = logrus.New().ExitFunc
 
