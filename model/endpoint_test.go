@@ -2,7 +2,6 @@
 package model
 
 import (
-	"fmt"
 	"testing"
 )
 
@@ -45,11 +44,10 @@ func TestEndpoint(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		testname := fmt.Sprintf("%s", tt.name)
-		t.Run(testname, func(t *testing.T) {
+		t.Run(tt.name, func(t *testing.T) {
 			val := tt.i.String()
 			if val != tt.want {
-				t.Errorf("got %s, want %s", val, tt.want)
+				t.Errorf("got %s, want %s. test name : %s", val, tt.want, tt.name)
 			}
 		})
 	}

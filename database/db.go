@@ -57,7 +57,7 @@ func (db *DB) Shutdown() {
 			logrus.Warn(err)
 			return
 		}
-		logrus.Debugf("Shutdown mysql connections OK")
+		logrus.Info("Shutdown mysql connections OK")
 	}
 }
 

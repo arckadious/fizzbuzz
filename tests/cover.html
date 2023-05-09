@@ -63,7 +63,7 @@
 				
 				<option value="file3">github.com/arckadious/fizzbuzz/database/db.go (84.6%)</option>
 				
-				<option value="file4">github.com/arckadious/fizzbuzz/manager/fizz.go (93.5%)</option>
+				<option value="file4">github.com/arckadious/fizzbuzz/manager/fizz.go (100.0%)</option>
 				
 				<option value="file5">github.com/arckadious/fizzbuzz/manager/manager.go (100.0%)</option>
 				
@@ -420,7 +420,7 @@ func (db *DB) Shutdown() <span class="cov8" title="1">{
                         logrus.Warn(err)
                         return
                 }</span>
-                <span class="cov8" title="1">logrus.Debugf("Shutdown mysql connections OK")</span>
+                <span class="cov8" title="1">logrus.Info("Shutdown mysql connections OK")</span>
         }
 }
 
@@ -522,7 +522,7 @@ func (m *Fizz) HandleStatistics(w http.ResponseWriter) <span class="cov8" title=
                         res.WriteJSONResponse(w)
                         return
                 }</span>
-                <span class="cov0" title="0">res.SetErrorResponse(http.StatusInternalServerError, []response.ApiError{{Code: cst.ErrorInternalServerError, Message: err.Error()}}).WriteJSONResponse(w)
+                <span class="cov8" title="1">res.SetErrorResponse(http.StatusInternalServerError, []response.ApiError{{Code: cst.ErrorInternalServerError, Message: err.Error()}}).WriteJSONResponse(w)
                 return</span>
         }
 

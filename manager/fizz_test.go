@@ -3,7 +3,7 @@ package manager
 
 import (
 	"database/sql"
-	"fmt"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -100,80 +100,38 @@ func TestHandleFizz(t *testing.T) {
 				StrX: "fizz",
 			},
 		}}, http.StatusOK, "{\"status\":\"success\",\"messages\":[],\"data\":\"1,2,fizz,4,buzz,fizz,7,8,fizz,buzz,11,fizz,13,14,buzzfizz,16,17,fizz,19,buzz,fizz,22,23,fizz,buzz,26,fizz,28,29,buzzfizz\"}"},
-
-		{"model.Input empty", model.Input{}, http.StatusOK, ""},
-		{"model.Input empty", model.Input{}, http.StatusOK, ""},
 	}
 
 	for _, tt := range tests {
-		testname := fmt.Sprintf("%s", tt.name)
-		t.Run(testname, func(t *testing.T) {
+		t.Run(tt.name, func(t *testing.T) {
 			w := httptest.NewRecorder()
-			mf.HandleFizz(w, model.Input{})
-			assert.Equal(tt.wantBody, w.Body.String())
-			assert.Equal(tt.wantCode, w.Code)
+			mf.HandleFizz(w, tt.i)
+			assert.Equal(tt.wantBody, w.Body.String(), tt.name)
+			assert.Equal(tt.wantCode, w.Code, tt.name)
 		})
 	}
 }
 
-// ///////////////////////////
+// //////////////////////////
 // Fizz.HandleStatistics() //
-// ///////////////////////////
+// //////////////////////////
 func TestHandleStatistics(t *testing.T) {
 
+	// Mock repository is used to test HandleStatistics function.
 	assert, _ := InitRepoAndManager(t)
 
 	var tests = []struct {
 		name     string
+		contains bool
 		i        []interface{}
 		wantCode int
 		wantBody string
 	}{
-		{"No rows in database (mock DB)", []interface{}{"", 0, true, sql.ErrNoRows}, http.StatusPartialContent, "{\"status\":\"success\",\"messages\":[],\"data\":null}"},
-	}
-
-	for _, tt := range tests {
-		testname := fmt.Sprintf("%s", tt.name)
-		t.Run(testname, func(t *testing.T) {
-			repoFizz.ExpectedCalls = []*mock.Call{}
-			repoFizz.On("GetMostRequestUsed").Return(tt.i...)
-			w := httptest.NewRecorder()
-			mf.HandleStatistics(w)
-			repoFizz.AssertExpectations(t)
-			assert.Equal(tt.wantBody, w.Body.String())
-			assert.Equal(tt.wantCode, w.Code)
-		})
-	}
-
-	// No rows in database (mock DB)
-	repoFizz.On("GetMostRequestUsed").Return("", 0, true, sql.ErrNoRows)
-	w := httptest.NewRecorder()
-	mf.HandleStatistics(w)
-	repoFizz.AssertExpectations(t)
-	assert.Equal(http.StatusPartialContent, w.Code)
-	assert.Equal("{\"status\":\"success\",\"messages\":[],\"data\":null}", w.Body.String())
-
-	// Wrong message returned by function GetMostRequestUsed.
-	repoFizz.ExpectedCalls = []*mock.Call{}
-	repoFizz.On("GetMostRequestUsed").Return("toto", 0, false, nil)
-	w = httptest.NewRecorder()
-	mf.HandleStatistics(w)
-	repoFizz.AssertExpectations(t)
-	assert.Equal(http.StatusInternalServerError, w.Code)
-	assert.Equal("{\"status\":\"error\",\"messages\":[{\"code\":\"INTERNAL_SERVER_ERR\",\"message\":\"invalid character 'o' in literal true (expecting 'r')\"}],\"data\":null}", w.Body.String())
-
-	// Wrong JSON message returned by function GetMostRequestUsed.
-	repoFizz.ExpectedCalls = []*mock.Call{}
-	repoFizz.On("GetMostRequestUsed").Return("{\"toto\":\"test\"}", 0, false, nil)
-	w = httptest.NewRecorder()
-	mf.HandleStatistics(w)
-	repoFizz.AssertExpectations(t)
-	assert.Equal(http.StatusInternalServerError, w.Code)
-	assert.Contains(w.Body.String(), "{\"status\":\"error\",\"messages\":[{\"code\":\"INTERNAL_SERVER_ERR\",\"message\":\"Key: ")
-
-	// Process OK
-	repoFizz.ExpectedCalls = []*mock.Call{}
-	repoFizz.On("GetMostRequestUsed").Return(`{
+		{"No rows in database (mock DB)", false, []interface{}{"", 0, true, sql.ErrNoRows}, http.StatusPartialContent, "{\"status\":\"success\",\"messages\":[],\"data\":null}"},
+		{"Error from DB", false, []interface{}{"", 0, false, errors.New("test")}, http.StatusInternalServerError, "{\"status\":\"error\",\"messages\":[{\"code\":\"INTERNAL_SERVER_ERR\",\"message\":\"test\"}],\"data\":null}"},
+		{"Wrong message returned by function GetMostRequestUsed", false, []interface{}{"toto", 0, false, nil}, http.StatusInternalServerError, "{\"status\":\"error\",\"messages\":[{\"code\":\"INTERNAL_SERVER_ERR\",\"message\":\"invalid character 'o' in literal true (expecting 'r')\"}],\"data\":null}"},
+		{"Wrong JSON message returned by function GetMostRequestUsed", true, []interface{}{"{\"toto\":\"test\"}", 0, false, nil}, http.StatusInternalServerError, "{\"status\":\"error\",\"messages\":[{\"code\":\"INTERNAL_SERVER_ERR\",\"message\":\"Key: "},
+		{"Process OK", false, []interface{}{`{
 			"multiples": [
 			  {
 				"intX": 3,
@@ -185,11 +143,22 @@ func TestHandleStatistics(t *testing.T) {
 			  }
 			],
 			"limit": 100
-		  }`, 56, false, nil)
-	w = httptest.NewRecorder()
-	mf.HandleStatistics(w)
-	repoFizz.AssertExpectations(t)
-	assert.Equal(http.StatusOK, w.Code)
-	assert.Equal("{\"status\":\"success\",\"messages\":[],\"data\":{\"request\":{\"Limit\":100,\"Multiples\":[{\"IntX\":3,\"StrX\":\"fizz\"},{\"IntX\":5,\"StrX\":\"buzz\"}]},\"hits\":56}}", w.Body.String())
+		  }`, 56, false, nil}, http.StatusOK, "{\"status\":\"success\",\"messages\":[],\"data\":{\"request\":{\"Limit\":100,\"Multiples\":[{\"IntX\":3,\"StrX\":\"fizz\"},{\"IntX\":5,\"StrX\":\"buzz\"}]},\"hits\":56}}"},
+	}
 
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			repoFizz.ExpectedCalls = []*mock.Call{}
+			repoFizz.On("GetMostRequestUsed").Return(tt.i...)
+			w := httptest.NewRecorder()
+			mf.HandleStatistics(w)
+			repoFizz.AssertExpectations(t)
+			assert.Equal(tt.wantCode, w.Code, tt.name)
+			if tt.contains {
+				assert.Contains(w.Body.String(), tt.wantBody, tt.name)
+			} else {
+				assert.Equal(tt.wantBody, w.Body.String(), tt.name)
+			}
+		})
+	}
 }
