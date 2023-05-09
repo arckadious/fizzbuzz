@@ -4,6 +4,9 @@ package config
 import (
 	"encoding/json"
 	"os"
+	"path"
+	"runtime"
+	"strconv"
 	"strings"
 	"time"
 
@@ -14,11 +17,12 @@ import (
 
 // Config class contains general project configuration
 type Config struct {
-	Env      string `validate:"required,oneof='localhost' 'dev' 'rct' 'prod' 'develop' 'recette' 'production'"`
-	Level    string `validate:"required,oneof='trace' 'debug' 'info' 'warning' 'warn' 'error' 'fatal' 'panic'"`
-	rootPath string `validate:"required"`
-	Port     int    `validate:"gte=1,lte=65535"`
-	Database struct {
+	Env          string `validate:"required,oneof='localhost' 'dev' 'rct' 'prod' 'develop' 'recette' 'production'"`
+	Level        string `validate:"required,oneof='trace' 'debug' 'info' 'warning' 'warn' 'error' 'fatal' 'panic'"`
+	rootPath     string `validate:"required"`
+	ReportCaller bool
+	Port         int `validate:"gte=1,lte=65535"`
+	Database     struct {
 		Adapter         string        `json:"adapter" validate:"required"`
 		Host            string        `json:"host" validate:"required"`
 		Username        string        `json:"username" validate:"required"`
@@ -70,11 +74,19 @@ func New(fileName string, validator validator.Validate) (c *Config, err error) {
 
 	c = &Config{}
 
-	//define logrus text formatter
+	// Define logrus text formatter
+	logrus.SetReportCaller(true)
 	logrus.SetFormatter(&logrus.TextFormatter{
 		ForceColors:     true,
 		FullTimestamp:   true,
 		TimestampFormat: "2006-01-02 15:04:05",
+
+		CallerPrettyfier: func(f *runtime.Frame) (string, string) {
+			// s := strings.Split(f.Function, ".")
+			// funcname := s[len(s)-1]
+			_, filename := path.Split(f.File)
+			return "", " [" + filename + ":" + strconv.Itoa(f.Line) + "]"
+		},
 		//PadLevelText:    true,
 	})
 
@@ -89,14 +101,14 @@ func New(fileName string, validator validator.Validate) (c *Config, err error) {
 		return
 	}
 
-	//Set Rootpath
+	// Set Rootpath
 	rootPath, err := os.Getwd()
 	if err != nil {
 		return
 	}
 	c.InitRootPath(rootPath)
 
-	//Set log error Level
+	// Set log error Level
 	level, err := logrus.ParseLevel(c.Level)
 	if err == nil {
 		logrus.SetLevel(level)
@@ -104,7 +116,10 @@ func New(fileName string, validator validator.Validate) (c *Config, err error) {
 		logrus.SetLevel(logrus.DebugLevel)
 	}
 
-	//Set Gin mode
+	// Set reportCaller logrus
+	logrus.SetReportCaller(c.ReportCaller)
+
+	// Set Gin mode
 	if c.Env != "localhost" {
 		gin.SetMode(gin.ReleaseMode)
 	} else {

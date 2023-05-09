@@ -57,7 +57,7 @@
 				
 				<option value="file0">github.com/arckadious/fizzbuzz/action/fizz/fizz.go (92.3%)</option>
 				
-				<option value="file1">github.com/arckadious/fizzbuzz/config/config.go (90.0%)</option>
+				<option value="file1">github.com/arckadious/fizzbuzz/config/config.go (86.4%)</option>
 				
 				<option value="file2">github.com/arckadious/fizzbuzz/container/container.go (100.0%)</option>
 				
@@ -75,7 +75,7 @@
 				
 				<option value="file9">github.com/arckadious/fizzbuzz/response/apiresponse.go (92.3%)</option>
 				
-				<option value="file10">github.com/arckadious/fizzbuzz/server/server.go (89.1%)</option>
+				<option value="file10">github.com/arckadious/fizzbuzz/server/server.go (89.4%)</option>
 				
 				<option value="file11">github.com/arckadious/fizzbuzz/util/util.go (94.7%)</option>
 				
@@ -151,6 +151,9 @@ package config
 import (
         "encoding/json"
         "os"
+        "path"
+        "runtime"
+        "strconv"
         "strings"
         "time"
 
@@ -161,11 +164,12 @@ import (
 
 // Config class contains general project configuration
 type Config struct {
-        Env      string `validate:"required,oneof='localhost' 'dev' 'rct' 'prod' 'develop' 'recette' 'production'"`
-        Level    string `validate:"required,oneof='trace' 'debug' 'info' 'warning' 'warn' 'error' 'fatal' 'panic'"`
-        rootPath string `validate:"required"`
-        Port     int    `validate:"gte=1,lte=65535"`
-        Database struct {
+        Env          string `validate:"required,oneof='localhost' 'dev' 'rct' 'prod' 'develop' 'recette' 'production'"`
+        Level        string `validate:"required,oneof='trace' 'debug' 'info' 'warning' 'warn' 'error' 'fatal' 'panic'"`
+        rootPath     string `validate:"required"`
+        ReportCaller bool
+        Port         int `validate:"gte=1,lte=65535"`
+        Database     struct {
                 Adapter         string        `json:"adapter" validate:"required"`
                 Host            string        `json:"host" validate:"required"`
                 Username        string        `json:"username" validate:"required"`
@@ -217,15 +221,23 @@ func New(fileName string, validator validator.Validate) (c *Config, err error) <
 
         c = &amp;Config{}
 
-        //define logrus text formatter
+        // Define logrus text formatter
+        logrus.SetReportCaller(true)
         logrus.SetFormatter(&amp;logrus.TextFormatter{
                 ForceColors:     true,
                 FullTimestamp:   true,
                 TimestampFormat: "2006-01-02 15:04:05",
+
+                CallerPrettyfier: func(f *runtime.Frame) (string, string) </span><span class="cov0" title="0">{
+                        // s := strings.Split(f.Function, ".")
+                        // funcname := s[len(s)-1]
+                        _, filename := path.Split(f.File)
+                        return "", " [" + filename + ":" + strconv.Itoa(f.Line) + "]"
+                }</span>,
                 //PadLevelText:    true,
         })
 
-        configFile, err := os.Open(fileName)
+        <span class="cov8" title="1">configFile, err := os.Open(fileName)
         if err != nil </span><span class="cov8" title="1">{
                 return
         }</span>
@@ -236,14 +248,14 @@ func New(fileName string, validator validator.Validate) (c *Config, err error) <
                 return
         }</span>
 
-        //Set Rootpath
+        // Set Rootpath
         <span class="cov8" title="1">rootPath, err := os.Getwd()
         if err != nil </span><span class="cov0" title="0">{
                 return
         }</span>
         <span class="cov8" title="1">c.InitRootPath(rootPath)
 
-        //Set log error Level
+        // Set log error Level
         level, err := logrus.ParseLevel(c.Level)
         if err == nil </span><span class="cov8" title="1">{
                 logrus.SetLevel(level)
@@ -251,8 +263,11 @@ func New(fileName string, validator validator.Validate) (c *Config, err error) <
                 logrus.SetLevel(logrus.DebugLevel)
         }</span>
 
-        //Set Gin mode
-        <span class="cov8" title="1">if c.Env != "localhost" </span><span class="cov8" title="1">{
+        // Set reportCaller logrus
+        <span class="cov8" title="1">logrus.SetReportCaller(c.ReportCaller)
+
+        // Set Gin mode
+        if c.Env != "localhost" </span><span class="cov8" title="1">{
                 gin.SetMode(gin.ReleaseMode)
         }</span> else<span class="cov8" title="1"> {
                 gin.SetMode(gin.DebugMode)
@@ -957,36 +972,11 @@ func (s *Server) methodNotAllowedHandler(c *gin.Context) <span class="cov8" titl
 func (s *Server) Logger() gin.HandlerFunc <span class="cov8" title="1">{
         return func(c *gin.Context) </span><span class="cov8" title="1">{
 
-                defer func() </span><span class="cov8" title="1">{ // Ensure that Logger does not disturb anything, if any unexpected panic should occur, even if it shouldn't.
-                        if err := recover(); err != nil </span><span class="cov0" title="0">{
-                                logrus.Error(err)
-                        }</span>
-                }()
-
-                //Generate unique ID to make link between request and its associated response (stored in a different table)
-                <span class="cov8" title="1">corID, _ := util.GenerateUID()
-
                 body, err := util.ExtractBody(c.Request)
                 if err != nil </span><span class="cov0" title="0">{
                         logrus.Error("Logger coudn't send request data: ", err)
                         return
                 }</span>
-
-                //Create a checksum for the current request, only if it's the main endpoint (/fizzbuzz) and data is valid.
-                <span class="cov8" title="1">var data model.Input
-                checksum := ""
-                if c.Request.RequestURI == URLPrefixVersion+FizzBaseURI &amp;&amp; json.Unmarshal(body, &amp;data) == nil &amp;&amp; s.container.Validator.Struct(data) == nil </span><span class="cov0" title="0">{
-                        checksum = util.GetMD5Hash(data.String())
-                }</span>
-
-                // Create copy to be used inside the goroutine - See Gin documentation : https://gin-gonic.com/docs/examples/goroutines-inside-a-middleware/
-                <span class="cov8" title="1">cCp := c.Copy()
-
-                go func() </span><span class="cov8" title="1">{
-                        if err := s.container.Repo.LogToDB("request", string(body), Scheme+"://"+path.Join(cCp.Request.Host, cCp.Request.RequestURI), corID, checksum, ""); err != nil </span><span class="cov0" title="0">{
-                                logrus.Error(err)
-                        }</span>
-                }()
 
                 // Intercept Writer in order to get response body
                 <span class="cov8" title="1">blw := &amp;bodyLogWriter{body: bytes.NewBufferString(""), ResponseWriter: c.Writer}
@@ -996,11 +986,40 @@ func (s *Server) Logger() gin.HandlerFunc <span class="cov8" title="1">{
 
                 status := blw.Status()
                 respBody := blw.body.String()
+
+                cCp := c.Copy()
+
                 go func() </span><span class="cov8" title="1">{
-                        if err := s.container.Repo.LogToDB("response", respBody, "", corID, checksum, strconv.Itoa(status)); err != nil </span><span class="cov0" title="0">{
+                        defer func() </span><span class="cov8" title="1">{ // Ensure that Logger does not disturb anything if any unexpected panic should occur, even if it shouldn't.
+                                if err := recover(); err != nil </span><span class="cov0" title="0">{
+                                        logrus.Error(err)
+                                }</span>
+                        }()
+
+                        // Generate unique ID to make link between request and its associated response (stored in a different table)
+                        <span class="cov8" title="1">corID, err := util.GenerateUID()
+                        if err != nil </span><span class="cov0" title="0">{
+                                logrus.Error(err)
+                                return
+                        }</span>
+
+                        // Create a checksum for the current request, only if it's the main endpoint (/fizzbuzz) and data is valid.
+                        <span class="cov8" title="1">var data model.Input
+                        checksum := ""
+
+                        if cCp.Request.RequestURI == URLPrefixVersion+FizzBaseURI &amp;&amp; json.Unmarshal(body, &amp;data) == nil &amp;&amp; s.container.Validator.Struct(data) == nil </span><span class="cov0" title="0">{
+                                checksum = util.GetMD5Hash(data.String())
+                        }</span>
+
+                        <span class="cov8" title="1">if err := s.container.Repo.LogToDB("request", string(body), Scheme+"://"+path.Join(cCp.Request.Host, cCp.Request.RequestURI), corID, checksum, ""); err != nil </span><span class="cov8" title="1">{
+                                logrus.Error(err)
+                        }</span>
+
+                        <span class="cov8" title="1">if err := s.container.Repo.LogToDB("response", respBody, "", corID, "", strconv.Itoa(status)); err != nil </span><span class="cov8" title="1">{
                                 logrus.Error(err)
                         }</span>
                 }()
+
         }
 }
 </pre>

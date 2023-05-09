@@ -190,36 +190,11 @@ func (s *Server) methodNotAllowedHandler(c *gin.Context) {
 func (s *Server) Logger() gin.HandlerFunc {
 	return func(c *gin.Context) {
 
-		defer func() { // Ensure that Logger does not disturb anything, if any unexpected panic should occur, even if it shouldn't.
-			if err := recover(); err != nil {
-				logrus.Error(err)
-			}
-		}()
-
-		//Generate unique ID to make link between request and its associated response (stored in a different table)
-		corID, _ := util.GenerateUID()
-
 		body, err := util.ExtractBody(c.Request)
 		if err != nil {
 			logrus.Error("Logger coudn't send request data: ", err)
 			return
 		}
-
-		//Create a checksum for the current request, only if it's the main endpoint (/fizzbuzz) and data is valid.
-		var data model.Input
-		checksum := ""
-		if c.Request.RequestURI == URLPrefixVersion+FizzBaseURI && json.Unmarshal(body, &data) == nil && s.container.Validator.Struct(data) == nil {
-			checksum = util.GetMD5Hash(data.String())
-		}
-
-		// Create copy to be used inside the goroutine - See Gin documentation : https://gin-gonic.com/docs/examples/goroutines-inside-a-middleware/
-		cCp := c.Copy()
-
-		go func() {
-			if err := s.container.Repo.LogToDB("request", string(body), Scheme+"://"+path.Join(cCp.Request.Host, cCp.Request.RequestURI), corID, checksum, ""); err != nil {
-				logrus.Error(err)
-			}
-		}()
 
 		// Intercept Writer in order to get response body
 		blw := &bodyLogWriter{body: bytes.NewBufferString(""), ResponseWriter: c.Writer}
@@ -229,10 +204,39 @@ func (s *Server) Logger() gin.HandlerFunc {
 
 		status := blw.Status()
 		respBody := blw.body.String()
+
+		cCp := c.Copy()
+
 		go func() {
-			if err := s.container.Repo.LogToDB("response", respBody, "", corID, checksum, strconv.Itoa(status)); err != nil {
+			defer func() { // Ensure that Logger does not disturb anything if any unexpected panic should occur, even if it shouldn't.
+				if err := recover(); err != nil {
+					logrus.Error(err)
+				}
+			}()
+
+			// Generate unique ID to make link between request and its associated response (stored in a different table)
+			corID, err := util.GenerateUID()
+			if err != nil {
+				logrus.Error(err)
+				return
+			}
+
+			// Create a checksum for the current request, only if it's the main endpoint (/fizzbuzz) and data is valid.
+			var data model.Input
+			checksum := ""
+
+			if cCp.Request.RequestURI == URLPrefixVersion+FizzBaseURI && json.Unmarshal(body, &data) == nil && s.container.Validator.Struct(data) == nil {
+				checksum = util.GetMD5Hash(data.String())
+			}
+
+			if err := s.container.Repo.LogToDB("request", string(body), Scheme+"://"+path.Join(cCp.Request.Host, cCp.Request.RequestURI), corID, checksum, ""); err != nil {
+				logrus.Error(err)
+			}
+
+			if err := s.container.Repo.LogToDB("response", respBody, "", corID, "", strconv.Itoa(status)); err != nil {
 				logrus.Error(err)
 			}
 		}()
+
 	}
 }

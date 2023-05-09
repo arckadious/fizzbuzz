@@ -30,17 +30,17 @@ func TestEndpoint(t *testing.T) {
 			},
 		}, "{[{fizz 3}] 2}"},
 		{"Struct tab size 2", &Input{
-			Limit: 2,
 			Multiples: []Multiple{
 				{
-					IntX: 3,
 					StrX: "fizz",
+					IntX: 3,
 				},
 				{
 					IntX: 5,
 					StrX: "buzz",
 				},
 			},
+			Limit: 2,
 		}, "{[{fizz 3} {buzz 5}] 2}"},
 	}
 

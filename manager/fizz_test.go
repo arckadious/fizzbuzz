@@ -3,6 +3,7 @@ package manager
 
 import (
 	"database/sql"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -19,93 +20,134 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestFizz(t *testing.T) {
+var repoFizz *tests.FizzRepositoryMock
+var mf *Fizz
 
+func InitRepoAndManager(t *testing.T) (*assert.Assertions, *require.Assertions) {
 	assert := assert.New(t)
 	require := require.New(t)
+
+	if repoFizz != nil && mf != nil {
+		return assert, require
+	}
+
 	cf, err := config.New("../tests/mock/parametersOK.json", *validator.New())
 	require.NoError(err)
 	mng := New(cf, *response.New(http.StatusOK, cst.StatusSuccess, make([]response.ApiError, 0), nil), validator.New(), &repository.Repository{})
-	repoFizz := new(tests.FizzRepositoryMock) //repository Fizz mock
+	repoFizz = new(tests.FizzRepositoryMock) //repository Fizz mock
 
 	////////////////
 	// Fizz.New() //
 	////////////////
 
-	mf := NewFizz(mng, repoFizz)
+	mf = NewFizz(mng, repoFizz)
 
-	//////////////////////////////////////////
-	// Manager Methods from Parent class OK //
-	//////////////////////////////////////////
+	return assert, require
+}
+
+// ///////////////////////////////////////
+// Manager Methods from Parent class OK //
+// ///////////////////////////////////////
+func TestFizzParentMethods(t *testing.T) {
+
+	InitRepoAndManager(t)
 
 	mf.GetApiResponse()
 	mf.GetValidator()
+}
 
-	///////////////////////
-	// Fizz.HandleFizz() //
-	///////////////////////
+// ////////////////////
+// Fizz.HandleFizz() //
+// ////////////////////
+func TestHandleFizz(t *testing.T) {
 
-	// model.Input empty
-	w := httptest.NewRecorder()
-	mf.HandleFizz(w, model.Input{})
-	require.Equal("{\"status\":\"success\",\"messages\":[],\"data\":\"\"}", w.Body.String())
-	assert.Equal(http.StatusOK, w.Code)
+	assert, _ := InitRepoAndManager(t)
 
-	// limit 5 parameter
-	w = httptest.NewRecorder()
-	mf.HandleFizz(w, model.Input{Limit: 5})
-	assert.Equal("{\"status\":\"success\",\"messages\":[],\"data\":\"1,2,3,4,5\"}", w.Body.String())
-	assert.Equal(http.StatusOK, w.Code)
+	var tests = []struct {
+		name     string
+		i        model.Input
+		wantCode int
+		wantBody string
+	}{
+		{"model.Input empty", model.Input{}, http.StatusOK, "{\"status\":\"success\",\"messages\":[],\"data\":\"\"}"},
+		{"limit 5 parameter", model.Input{Limit: 5}, http.StatusOK, "{\"status\":\"success\",\"messages\":[],\"data\":\"1,2,3,4,5\"}"},
 
-	// Limit 30, one multiple 3
-	w = httptest.NewRecorder()
-	mf.HandleFizz(w, model.Input{Limit: 30, Multiples: []model.Multiple{
-		{
-			IntX: 3,
-			StrX: "fizz",
-		},
-	}})
-	assert.Equal("{\"status\":\"success\",\"messages\":[],\"data\":\"1,2,fizz,4,5,fizz,7,8,fizz,10,11,fizz,13,14,fizz,16,17,fizz,19,20,fizz,22,23,fizz,25,26,fizz,28,29,fizz\"}", w.Body.String())
-	assert.Equal(http.StatusOK, w.Code)
+		{"Limit 30, one multiple 3", model.Input{Limit: 30, Multiples: []model.Multiple{
+			{
+				IntX: 3,
+				StrX: "fizz",
+			},
+		}}, http.StatusOK, "{\"status\":\"success\",\"messages\":[],\"data\":\"1,2,fizz,4,5,fizz,7,8,fizz,10,11,fizz,13,14,fizz,16,17,fizz,19,20,fizz,22,23,fizz,25,26,fizz,28,29,fizz\"}"},
 
-	// Limit 30, two multiple 3, and 5
-	w = httptest.NewRecorder()
-	mf.HandleFizz(w, model.Input{Limit: 30, Multiples: []model.Multiple{
-		{
-			IntX: 3,
-			StrX: "fizz",
-		},
-		{
-			IntX: 5,
-			StrX: "buzz",
-		},
-	}})
+		{"Limit 30, two multiple 3, and 5", model.Input{Limit: 30, Multiples: []model.Multiple{
+			{
+				IntX: 3,
+				StrX: "fizz",
+			},
+			{
+				IntX: 5,
+				StrX: "buzz",
+			},
+		}}, http.StatusOK, "{\"status\":\"success\",\"messages\":[],\"data\":\"1,2,fizz,4,buzz,fizz,7,8,fizz,buzz,11,fizz,13,14,fizzbuzz,16,17,fizz,19,buzz,fizz,22,23,fizz,buzz,26,fizz,28,29,fizzbuzz\"}"},
 
-	assert.Equal(http.StatusOK, w.Code)
-	assert.Equal("{\"status\":\"success\",\"messages\":[],\"data\":\"1,2,fizz,4,buzz,fizz,7,8,fizz,buzz,11,fizz,13,14,fizzbuzz,16,17,fizz,19,buzz,fizz,22,23,fizz,buzz,26,fizz,28,29,fizzbuzz\"}", w.Body.String())
+		{"Limit 30, two multiple 5, and 3", model.Input{Limit: 30, Multiples: []model.Multiple{
+			{
+				IntX: 5,
+				StrX: "buzz",
+			},
+			{
+				IntX: 3,
+				StrX: "fizz",
+			},
+		}}, http.StatusOK, "{\"status\":\"success\",\"messages\":[],\"data\":\"1,2,fizz,4,buzz,fizz,7,8,fizz,buzz,11,fizz,13,14,buzzfizz,16,17,fizz,19,buzz,fizz,22,23,fizz,buzz,26,fizz,28,29,buzzfizz\"}"},
 
-	// Limit 30, two multiple 5, and 3
-	w = httptest.NewRecorder()
-	mf.HandleFizz(w, model.Input{Limit: 30, Multiples: []model.Multiple{
-		{
-			IntX: 5,
-			StrX: "buzz",
-		},
-		{
-			IntX: 3,
-			StrX: "fizz",
-		},
-	}})
-	assert.Equal(http.StatusOK, w.Code)
-	assert.Equal("{\"status\":\"success\",\"messages\":[],\"data\":\"1,2,fizz,4,buzz,fizz,7,8,fizz,buzz,11,fizz,13,14,buzzfizz,16,17,fizz,19,buzz,fizz,22,23,fizz,buzz,26,fizz,28,29,buzzfizz\"}", w.Body.String())
+		{"model.Input empty", model.Input{}, http.StatusOK, ""},
+		{"model.Input empty", model.Input{}, http.StatusOK, ""},
+	}
 
-	/////////////////////////////
-	// Fizz.HandleStatistics() //
-	/////////////////////////////
+	for _, tt := range tests {
+		testname := fmt.Sprintf("%s", tt.name)
+		t.Run(testname, func(t *testing.T) {
+			w := httptest.NewRecorder()
+			mf.HandleFizz(w, model.Input{})
+			assert.Equal(tt.wantBody, w.Body.String())
+			assert.Equal(tt.wantCode, w.Code)
+		})
+	}
+}
+
+// ///////////////////////////
+// Fizz.HandleStatistics() //
+// ///////////////////////////
+func TestHandleStatistics(t *testing.T) {
+
+	assert, _ := InitRepoAndManager(t)
+
+	var tests = []struct {
+		name     string
+		i        []interface{}
+		wantCode int
+		wantBody string
+	}{
+		{"No rows in database (mock DB)", []interface{}{"", 0, true, sql.ErrNoRows}, http.StatusPartialContent, "{\"status\":\"success\",\"messages\":[],\"data\":null}"},
+	}
+
+	for _, tt := range tests {
+		testname := fmt.Sprintf("%s", tt.name)
+		t.Run(testname, func(t *testing.T) {
+			repoFizz.ExpectedCalls = []*mock.Call{}
+			repoFizz.On("GetMostRequestUsed").Return(tt.i...)
+			w := httptest.NewRecorder()
+			mf.HandleStatistics(w)
+			repoFizz.AssertExpectations(t)
+			assert.Equal(tt.wantBody, w.Body.String())
+			assert.Equal(tt.wantCode, w.Code)
+		})
+	}
 
 	// No rows in database (mock DB)
 	repoFizz.On("GetMostRequestUsed").Return("", 0, true, sql.ErrNoRows)
-	w = httptest.NewRecorder()
+	w := httptest.NewRecorder()
 	mf.HandleStatistics(w)
 	repoFizz.AssertExpectations(t)
 	assert.Equal(http.StatusPartialContent, w.Code)

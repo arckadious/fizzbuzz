@@ -1,5 +1,6 @@
 {
     "port": 8000,
+    "reportCaller": true,
     "env": "localhost",
     "level": "info",
     "database": {
