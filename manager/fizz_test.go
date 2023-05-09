@@ -12,20 +12,12 @@ import (
 	"github.com/arckadious/fizzbuzz/model"
 	"github.com/arckadious/fizzbuzz/repository"
 	"github.com/arckadious/fizzbuzz/response"
+	tests "github.com/arckadious/fizzbuzz/tests/mock"
 	"github.com/arckadious/fizzbuzz/validator"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
-
-type FizzRepositoryMock struct {
-	mock.Mock
-}
-
-func (m *FizzRepositoryMock) GetMostRequestUsed() (msg string, hits int, noRows bool, err error) {
-	args := m.Called()
-	return args.String(0), args.Int(1), args.Bool(2), args.Error(3)
-}
 
 func TestFizz(t *testing.T) {
 
@@ -34,7 +26,7 @@ func TestFizz(t *testing.T) {
 	cf, err := config.New("../tests/mock/parametersOK.json", *validator.New())
 	require.NoError(err)
 	mng := New(cf, *response.New(http.StatusOK, cst.StatusSuccess, make([]response.ApiError, 0), nil), validator.New(), &repository.Repository{})
-	repoFizz := new(FizzRepositoryMock) //repository Fizz mock
+	repoFizz := new(tests.FizzRepositoryMock) //repository Fizz mock
 
 	////////////////
 	// Fizz.New() //

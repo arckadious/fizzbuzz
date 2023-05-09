@@ -47,7 +47,10 @@ func (r *Repository) LogToDB(logType, msg, url, corID, checksum, status string) 
 		return errors.New("Logger coudn't audit data: Logger Type unkwown.")
 	}
 
-	_, err = r.db.GetConnector().Exec(sql, vals...)
+	ctx, cancel := r.db.GetDefaultContext()
+	defer cancel()
+
+	_, err = r.db.GetConnector().ExecContext(ctx, sql, vals...)
 	if err != nil {
 		return errors.New("Logger coudn't send " + logType + " data: " + err.Error())
 	}

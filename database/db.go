@@ -2,6 +2,7 @@
 package database
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"time"
@@ -12,7 +13,8 @@ import (
 )
 
 const (
-	timeout = 5
+	timeout             = 5
+	queryDefaultTimeout = 300 //ms
 )
 
 // DB class
@@ -37,12 +39,13 @@ func New(cf *config.Config) *DB {
 
 }
 
-// GetConnector returns sql connector, creating new connection if necessary
+func (db *DB) GetDefaultContext() (context.Context, context.CancelFunc) {
+	ctx, cancelFunc := context.WithTimeout(context.Background(), queryDefaultTimeout*time.Millisecond) //Best practice to set query timeouts for all queries, to avoid slow queries.
+	return ctx, cancelFunc
+}
+
+// GetConnector returns sql connector
 func (db *DB) GetConnector() *sql.DB {
-	err := db.dbConnector.Ping() // Ensure that a connection to the database is still alive, establishing a connection if necessary.
-	if err != nil {
-		logrus.Error("GetConnector MySQL: ", err)
-	}
 	return db.dbConnector
 }
 
@@ -69,7 +72,7 @@ func (db *DB) connect() (dbConnector *sql.DB, err error) {
 		db.cf.Database.Charset,
 		timeout)
 
-	dbConnector, err = sql.Open("mysql", dsn)
+	dbConnector, err = sql.Open("mysql", dsn) //The returned DB is safe for concurrent use by multiple goroutines and maintains its own pool of idle connections -> https://pkg.go.dev/database/sql#Open
 	if err != nil {
 		return
 	}

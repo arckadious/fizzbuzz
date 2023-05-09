@@ -61,7 +61,7 @@
 				
 				<option value="file2">github.com/arckadious/fizzbuzz/container/container.go (100.0%)</option>
 				
-				<option value="file3">github.com/arckadious/fizzbuzz/database/db.go (85.2%)</option>
+				<option value="file3">github.com/arckadious/fizzbuzz/database/db.go (84.6%)</option>
 				
 				<option value="file4">github.com/arckadious/fizzbuzz/manager/fizz.go (93.5%)</option>
 				
@@ -75,7 +75,7 @@
 				
 				<option value="file9">github.com/arckadious/fizzbuzz/response/apiresponse.go (92.3%)</option>
 				
-				<option value="file10">github.com/arckadious/fizzbuzz/server/server.go (90.2%)</option>
+				<option value="file10">github.com/arckadious/fizzbuzz/server/server.go (89.1%)</option>
 				
 				<option value="file11">github.com/arckadious/fizzbuzz/util/util.go (94.7%)</option>
 				
@@ -350,6 +350,7 @@ func (c *Container) setRepositories(db *database.DB) <span class="cov8" title="1
 package database
 
 import (
+        "context"
         "database/sql"
         "fmt"
         "time"
@@ -360,7 +361,8 @@ import (
 )
 
 const (
-        timeout = 5
+        timeout             = 5
+        queryDefaultTimeout = 300 //ms
 )
 
 // DB class
@@ -385,14 +387,15 @@ func New(cf *config.Config) *DB <span class="cov8" title="1">{
 
 }
 
-// GetConnector returns sql connector, creating new connection if necessary
+func (db *DB) GetDefaultContext() (context.Context, context.CancelFunc) <span class="cov8" title="1">{
+        ctx, cancelFunc := context.WithTimeout(context.Background(), queryDefaultTimeout*time.Millisecond) //Best practice to set query timeouts for all queries, to avoid slow queries.
+        return ctx, cancelFunc
+}</span>
+
+// GetConnector returns sql connector
 func (db *DB) GetConnector() *sql.DB <span class="cov8" title="1">{
-        err := db.dbConnector.Ping() // Ensure that a connection to the database is still alive, establishing a connection if necessary.
-        if err != nil </span><span class="cov8" title="1">{
-                logrus.Error("GetConnector MySQL: ", err)
-        }</span>
-        <span class="cov8" title="1">return db.dbConnector</span>
-}
+        return db.dbConnector
+}</span>
 
 // Shutdown closes the database and prevents new queries from starting. Close then waits for all queries that have started processing on the server to finish.
 func (db *DB) Shutdown() <span class="cov8" title="1">{
@@ -417,7 +420,7 @@ func (db *DB) connect() (dbConnector *sql.DB, err error) <span class="cov8" titl
                 db.cf.Database.Charset,
                 timeout)
 
-        dbConnector, err = sql.Open("mysql", dsn)
+        dbConnector, err = sql.Open("mysql", dsn) //The returned DB is safe for concurrent use by multiple goroutines and maintains its own pool of idle connections -&gt; https://pkg.go.dev/database/sql#Open
         if err != nil </span><span class="cov0" title="0">{
                 return
         }</span>
@@ -469,7 +472,6 @@ func NewFizz(m *Manager, repo repository.FizzInterface) *Fizz <span class="cov8"
 func (m *Fizz) HandleFizz(w http.ResponseWriter, input model.Input) <span class="cov8" title="1">{
 
         res := m.GetApiResponse()
-
         var tab []string
         for i := 1; i &lt;= input.Limit; i++ </span><span class="cov8" title="1">{
                 var elem string
@@ -629,7 +631,10 @@ func NewFizz(repo *Repository) *Fizz <span class="cov8" title="1">{
 
 // GetMostRequestUsed returns from database the most used request (if any) as well as the number of hits.
 func (rf *Fizz) GetMostRequestUsed() (msg string, hits int, noRows bool, err error) <span class="cov8" title="1">{
-        err = rf.db.GetConnector().QueryRow("SELECT MAX(MSG), count(*) as HITS FROM `MESSAGES_REQUEST` WHERE CHECKSUM IS NOT NULL AND CHECKSUM != '' GROUP BY CHECKSUM ORDER BY HITS DESC LIMIT 1;").Scan(&amp;msg, &amp;hits)
+        ctx, cancel := rf.db.GetDefaultContext()
+        defer cancel()
+
+        err = rf.db.GetConnector().QueryRowContext(ctx, "SELECT MAX(MSG), count(*) as HITS FROM `MESSAGES_REQUEST` WHERE CHECKSUM IS NOT NULL AND CHECKSUM != '' GROUP BY CHECKSUM ORDER BY HITS DESC LIMIT 1;").Scan(&amp;msg, &amp;hits)
         // NOTE - MAX(MSG) instead of MSG: Since version 5.7.5 Mysql has the "ONLY_FULL_GROUP_BY" flag by default enabled. This request select a random 'MSG' value, but the new flag doesn't allow it. See https://jira.mariadb.org/browse/MDEV-10426 for more details
 
         if err == sql.ErrNoRows </span><span class="cov8" title="1">{
@@ -689,7 +694,10 @@ func (r *Repository) LogToDB(logType, msg, url, corID, checksum, status string) 
                 return errors.New("Logger coudn't audit data: Logger Type unkwown.")</span>
         }
 
-        <span class="cov8" title="1">_, err = r.db.GetConnector().Exec(sql, vals...)
+        <span class="cov8" title="1">ctx, cancel := r.db.GetDefaultContext()
+        defer cancel()
+
+        _, err = r.db.GetConnector().ExecContext(ctx, sql, vals...)
         if err != nil </span><span class="cov8" title="1">{
                 return errors.New("Logger coudn't send " + logType + " data: " + err.Error())
         }</span>
@@ -869,24 +877,23 @@ func (s *Server) handler() *gin.Engine <span class="cov8" title="1">{
         }</span>
 
         <span class="cov8" title="1">router.HandleMethodNotAllowed = true
-
-        router.Use(gin.CustomRecovery(s.recoveryHandler))
         router.NoRoute(gin.HandlerFunc(s.notFoundHandler))
         router.NoMethod(gin.HandlerFunc(s.methodNotAllowedHandler))
 
         //api doc (excluded from loggerMiddleware)
         router.Static("/swagger", "./swaggerui")
 
-        loggerRouter := router.Group("")
-        loggerRouter.Use(s.Logger())
+        subRouter := router.Group("")
+        subRouter.Use(s.Logger())
+        subRouter.Use(gin.CustomRecovery(s.recoveryHandler))
 
         //ping
-        loggerRouter.GET("/ping", func(c *gin.Context) </span><span class="cov8" title="1">{
+        subRouter.GET("/ping", func(c *gin.Context) </span><span class="cov8" title="1">{
                 c.String(http.StatusOK, "Ping OK !")
         }</span>)
 
         //api subrouter v1
-        <span class="cov8" title="1">v1 := loggerRouter.Group(URLPrefixVersion)
+        <span class="cov8" title="1">v1 := subRouter.Group(URLPrefixVersion)
 
         //fizzbuzz routes
         v1.POST(FizzBaseURI, func(c *gin.Context) </span><span class="cov8" title="1">{
@@ -950,8 +957,14 @@ func (s *Server) methodNotAllowedHandler(c *gin.Context) <span class="cov8" titl
 func (s *Server) Logger() gin.HandlerFunc <span class="cov8" title="1">{
         return func(c *gin.Context) </span><span class="cov8" title="1">{
 
+                defer func() </span><span class="cov8" title="1">{ // Ensure that Logger does not disturb anything, if any unexpected panic should occur, even if it shouldn't.
+                        if err := recover(); err != nil </span><span class="cov0" title="0">{
+                                logrus.Error(err)
+                        }</span>
+                }()
+
                 //Generate unique ID to make link between request and its associated response (stored in a different table)
-                corID, _ := util.GenerateUID()
+                <span class="cov8" title="1">corID, _ := util.GenerateUID()
 
                 body, err := util.ExtractBody(c.Request)
                 if err != nil </span><span class="cov0" title="0">{

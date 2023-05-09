@@ -32,7 +32,6 @@ func NewFizz(m *Manager, repo repository.FizzInterface) *Fizz {
 func (m *Fizz) HandleFizz(w http.ResponseWriter, input model.Input) {
 
 	res := m.GetApiResponse()
-
 	var tab []string
 	for i := 1; i <= input.Limit; i++ {
 		var elem string

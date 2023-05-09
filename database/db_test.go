@@ -31,8 +31,8 @@ func TestDB(t *testing.T) {
 	///////////////////////
 
 	// getConnector OK
-	assert.NotEqual(nil, db)
-	assert.NotEqual(nil, db.GetConnector())
+	assert.NotNil(db)
+	assert.NotNil(db.GetConnector())
 
 	///////////////////
 	// DB.shutdown() //
@@ -42,8 +42,6 @@ func TestDB(t *testing.T) {
 	db.Shutdown()
 	if assert.NotNil(hook.LastEntry()) {
 		assert.Equal("Shutdown mysql connections OK", hook.LastEntry().Message)
-		assert.NotEqual(nil, db.GetConnector())
-		assert.Equal("GetConnector MySQL: sql: database is closed", hook.LastEntry().Message)
 	}
 
 	//////////////////
@@ -55,4 +53,16 @@ func TestDB(t *testing.T) {
 	if _, err := db.connect(); assert.Error(err) {
 		assert.Contains(err.Error(), "Access denied for user ")
 	}
+
+	////////////////////////////
+	// DB.GetDefaultContext() //
+	////////////////////////////
+	ctx, cancel := db.GetDefaultContext()
+	assert.NotNil(ctx)
+	assert.NotNil(cancel)
+	defer cancel()
+
+	_, ok := ctx.Deadline()
+	assert.True(ok)
+
 }

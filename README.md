@@ -251,7 +251,7 @@ Local tools are available to make yourself comfortable :
 ````schema
 fizzbuzz
     ├───.github
-    │   └───workflows   >>> github workflows, for codacy and codecov
+    │   └───workflows   >>> github workflows, for codecov
     ├───action
     │   └───fizz        >>> extract and validate data
     │
@@ -275,7 +275,7 @@ fizzbuzz
     │
     ├───util      >>> contains various useful tools like MD5 Hash and http body extract
     │
-    ├───tests     >>> contains 'make tests' results (with html coverage file)
+    ├───tests     >>> contains 'make tests' results, and mock data used for testing
     │
     └───validator
 ````

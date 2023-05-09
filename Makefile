@@ -6,6 +6,7 @@ endif
 .PHONY: all clean down build start start-rp start-db start-logs restart stop stop-rp stop-db stop-logs kill rm in install update srv run bash sh tests test
 
 MODULE_NAME = github.com/arckadious/fizzbuzz
+BUILD_FILENAME = fizzbuzz
 DOCKER_COMPOSE_BIN = docker compose
 DOCKER_COMPOSE = $(DOCKER_COMPOSE_BIN)
 
@@ -73,10 +74,10 @@ update:
 	@$(DK_EXEC) bash -c "go get -u && go mod tidy && go mod download && go mod vendor"
 
 srv:
-	@$(DK_EXEC) bash -c "script -aqf /var/log/messages.log -c \"air -c .air.toml\""
+	@$(DK_EXEC) bash -c "script -aqf /var/log/messages.log -c \"BUILD_FILENAME=${BUILD_FILENAME} air -c .air.toml\""
 
 run:
-	@$(DK_EXEC) bash -c "script -aqf /var/log/messages.log -c 'go run main.go -config=/go/config/config.json'"
+	@$(DK_EXEC) bash -c "script -aqf /var/log/messages.log -c 'go build -o ${BUILD_FILENAME} . && ./${BUILD_FILENAME} -config=/go/config/config.json'"
 
 bash:
 	@$(DK_EXEC) bash

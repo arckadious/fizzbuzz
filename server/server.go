@@ -110,24 +110,23 @@ func (s *Server) handler() *gin.Engine {
 	}
 
 	router.HandleMethodNotAllowed = true
-
-	router.Use(gin.CustomRecovery(s.recoveryHandler))
 	router.NoRoute(gin.HandlerFunc(s.notFoundHandler))
 	router.NoMethod(gin.HandlerFunc(s.methodNotAllowedHandler))
 
 	//api doc (excluded from loggerMiddleware)
 	router.Static("/swagger", "./swaggerui")
 
-	loggerRouter := router.Group("")
-	loggerRouter.Use(s.Logger())
+	subRouter := router.Group("")
+	subRouter.Use(s.Logger())
+	subRouter.Use(gin.CustomRecovery(s.recoveryHandler))
 
 	//ping
-	loggerRouter.GET("/ping", func(c *gin.Context) {
+	subRouter.GET("/ping", func(c *gin.Context) {
 		c.String(http.StatusOK, "Ping OK !")
 	})
 
 	//api subrouter v1
-	v1 := loggerRouter.Group(URLPrefixVersion)
+	v1 := subRouter.Group(URLPrefixVersion)
 
 	//fizzbuzz routes
 	v1.POST(FizzBaseURI, func(c *gin.Context) {
@@ -190,6 +189,12 @@ func (s *Server) methodNotAllowedHandler(c *gin.Context) {
 // Logger send requests and response to database, and generate checksum if needed
 func (s *Server) Logger() gin.HandlerFunc {
 	return func(c *gin.Context) {
+
+		defer func() { // Ensure that Logger does not disturb anything, if any unexpected panic should occur, even if it shouldn't.
+			if err := recover(); err != nil {
+				logrus.Error(err)
+			}
+		}()
 
 		//Generate unique ID to make link between request and its associated response (stored in a different table)
 		corID, _ := util.GenerateUID()

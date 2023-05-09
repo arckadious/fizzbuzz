@@ -8,7 +8,7 @@
 debug
 /.vscode
 fizzbuzz
-/tmp/
+/tmp_air/
 /.history
 .DS_Store
 gin.log
