@@ -27,6 +27,7 @@ var sG *Server
 
 // Init server for all package tests just once.
 func InitServer(t *testing.T) (*assert.Assertions, *require.Assertions, *test.Hook) {
+	t.Helper()
 	assert := assert.New(t)
 	require := require.New(t)
 	hook := new(test.Hook)
@@ -123,7 +124,6 @@ func TestServerDBUnavailable(t *testing.T) {
 	assert, require, hook := InitServer(t)
 
 	cf, err := config.New("../tests/mock/parametersOK.json", *validator.New())
-	cf.Port = 8008
 	require.NoError(err)
 
 	validator := validator.New()

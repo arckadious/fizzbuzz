@@ -28,9 +28,9 @@ RUN touch /var/log/messages.log
 # RUN curl -sSfL https://raw.githubusercontent.com/cosmtrek/air/${AIR_VERSION}/install.sh | sh -s -- -b ${GOPATH}
 RUN go install github.com/cosmtrek/air@${AIR_VERSION}
 
-COPY . /fizzbuzz-api/
+COPY . /api/
 
-WORKDIR /fizzbuzz-api
+WORKDIR /api
 
 # keep container Up to avoid terminating
 # ENTRYPOINT [ "tail", "-f", "/dev/null" ] 

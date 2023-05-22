@@ -1,6 +1,6 @@
 # Fizzbuzz
 
- [![Test and coverage](https://github.com/arckadious/fizzbuzz/actions/workflows/codecov.yml/badge.svg?branch=master)](https://github.com/arckadious/fizzbuzz/actions/workflows/codecov.yml)  [![Codacy Badge](https://app.codacy.com/project/badge/Grade/d097d0142e6043a3936879cd0433a696?refresh=1)](https://app.codacy.com/gh/arckadious/fizzbuzz/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)  [![Go Report Card](https://goreportcard.com/badge/github.com/arckadious/fizzbuzz?refresh=1)](https://goreportcard.com/report/github.com/arckadious/fizzbuzz)  [![codecov](https://codecov.io/gh/arckadious/fizzbuzz/branch/master/graph/badge.svg)](https://codecov.io/gh/arckadious/fizzbuzz)  [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/arckadious/fizbuzz/LICENSE)  [![Go](https://img.shields.io/badge/Made%20with-Go-1f425f.svg)](https://go.dev/)
+ [![Test and coverage](https://github.com/arckadious/fizzbuzz/actions/workflows/codecov.yml/badge.svg?branch=master)](https://github.com/arckadious/fizzbuzz/actions/workflows/codecov.yml)  [![Codacy Badge](https://app.codacy.com/project/badge/Grade/d097d0142e6043a3936879cd0433a696?refresh=1)](https://app.codacy.com/gh/arckadious/fizzbuzz/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)  [![Go Report Card](https://goreportcard.com/badge/github.com/arckadious/fizzbuzz?refresh=1)](https://goreportcard.com/report/github.com/arckadious/fizzbuzz)  [![codecov](https://codecov.io/gh/arckadious/fizzbuzz/branch/master/graph/badge.svg)](https://codecov.io/gh/arckadious/fizzbuzz)  [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/arckadious/fizzbuzz/blob/master/LICENSE)  [![Go](https://img.shields.io/badge/Made%20with-Go-1f425f.svg)](https://go.dev/)
 
 The original fizzbuzz consists in writing all numbers from 1 to 100, and just replacing all multiples of 3 by "fizz", all multiples of 5 by "buzz", and all multiples of 15 by "fizzbuzz".
 
@@ -109,7 +109,7 @@ make install
 make srv
 ````
 
-> If you have issues with live reloading, try poll = true instead of false in [.air.toml](.air.toml) config file, or update docker to last version.
+> If you have issues with live reloading, update docker to last version, or set poll = true instead of false in [.air.toml](.air.toml) config file.
 
 ### Run API Server (without air)
 
@@ -119,7 +119,7 @@ make run
 
 ### Run Tests
 
-> MariaDB database need to be initialized and available ('make tests' use MySQL database from [api config file](./parameters/parameters.json)).
+> MariaDB database needs to be initialized and available ('make tests' use MySQL database from [api config file](./parameters/parameters.json)).
 
 ````:shell
 make tests
@@ -131,7 +131,7 @@ make tests
 
 |ENVIRONMENT|URL RANCHER|
 |:--|:--|
-|DEV|<fizbuzz-dev.example.com>|
+|DEV|<https://fizbuzz-dev.example.com>|
 |RECETTE|<https://fizbuzz-rct.example.com>|
 |PROD|<https://fizbuzz.example.com>|
 
@@ -155,7 +155,7 @@ This application use 3 types of logs:
 
 ### Applicative logs
 
-Fizzbuzz API uses a logger middleware, which send requests and responses to a MySQL Database.
+Fizzbuzz API uses a logger middleware, which sends requests and responses to a MySQL Database.
 
 >'/swagger' api endpoint is excluded from applicative logs.
 
@@ -174,7 +174,7 @@ LEFT JOIN MESSAGES_RESPONSE as mp ON mr.COR_ID = mp.COR_ID;
 
 ### Gin Framework Logs
 
-Gin Framework log each request sent to fizzbuzz API.
+Gin Framework logs each request sent to fizzbuzz API.
 
 > gin.log logs are available only for localhost environment purposes.
 
@@ -222,7 +222,7 @@ Local tools are available to make yourself comfortable :
 
 - /v1/statistics
 
-> Return the parameters corresponding to the most used request, as well as the number of hits for this request.
+> Returns the parameters corresponding to the most used request, as well as the number of hits for this request.
 
 <http://api.localhost:8080/v1/statistics>
 

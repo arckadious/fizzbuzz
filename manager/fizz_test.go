@@ -24,6 +24,7 @@ var repoFizz *tests.FizzRepositoryMock
 var mf *Fizz
 
 func InitRepoAndManager(t *testing.T) (*assert.Assertions, *require.Assertions) {
+	t.Helper()
 	assert := assert.New(t)
 	require := require.New(t)
 
