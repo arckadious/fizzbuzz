@@ -89,5 +89,5 @@ tests:
 	@$(DK_EXEC) bash -c "CGO_ENABLED=1 go test -race -v -coverprofile tests/cover.out ./... && go tool cover -html tests/cover.out -o tests/cover.html"
 	@$(HTML_TEST_OPEN)
 	
-test: # example : ARGS=repository make test -> run package tests in repository folder
-	@$(DK_EXEC) bash -c "go test -timeout 30s ${MODULE_NAME}/${ARGS}"
+test: # example : ARGS=repository make test -> run package tests in repository folder, without cache
+	@$(DK_EXEC) bash -c "go test -timeout 30s -count=1 ${MODULE_NAME}/${ARGS}"
